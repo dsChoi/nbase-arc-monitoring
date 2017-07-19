@@ -5,26 +5,27 @@ import io.redutan.nbasearc.monitoring.collector.Latency
 import io.redutan.nbasearc.monitoring.collector.Parser
 import java.time.LocalDateTime
 
-const val IDX_MINUTE_AND_SECOND = 1
-const val IDX_UNDER_1MS = 2
-const val IDX_UNDER_2MS = 3
-const val IDX_UNDER_4MS = 4
-const val IDX_UNDER_8MS = 5
-const val IDX_UNDER_16MS = 6
-const val IDX_UNDER_32MS = 7
-const val IDX_UNDER_64MS = 8
-const val IDX_UNDER_128MS = 9
-const val IDX_UNDER_256MS = 10
-const val IDX_UNDER_512MS = 11
-const val IDX_UNDER_1024MS = 12
-const val IDX_OVER_1024MS = 13
-const val LATENCY_STRING_LENGTH = 129
-const val LATENCY_STRING_SPLIT_SIZE = 15
 /**
  *
  * @author myeongju.jung
  */
 class LatencyParser : Parser<Latency> {
+    private val IDX_MINUTE_AND_SECOND = 1
+    private val IDX_UNDER_1MS = 2
+    private val IDX_UNDER_2MS = 3
+    private val IDX_UNDER_4MS = 4
+    private val IDX_UNDER_8MS = 5
+    private val IDX_UNDER_16MS = 6
+    private val IDX_UNDER_32MS = 7
+    private val IDX_UNDER_64MS = 8
+    private val IDX_UNDER_128MS = 9
+    private val IDX_UNDER_256MS = 10
+    private val IDX_UNDER_512MS = 11
+    private val IDX_UNDER_1024MS = 12
+    private val IDX_OVER_1024MS = 13
+    private val LATENCY_STRING_LENGTH = 129
+    private val LATENCY_STRING_SPLIT_SIZE = 15
+
     override fun parse(dateAndHour: LocalDateTime, line: String): Latency {
         if (line.contains("Exception")) {
             throw NbaseArcServerException(line.trim())
