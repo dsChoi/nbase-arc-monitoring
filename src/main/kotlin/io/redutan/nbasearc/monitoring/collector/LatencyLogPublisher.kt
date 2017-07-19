@@ -25,4 +25,11 @@ data class Latency(val expectedDateTime: LocalDateTime,
                    val under256ms: Long,
                    val under512ms: Long,
                    val under1024ms: Long,
-                   val over1024ms: Long) : NbaseArcLog
+                   val over1024ms: Long) : NbaseArcLog {
+    fun isEmpty(): Boolean {
+        return this == EMPTY_LATENCY
+    }
+}
+
+val EMPTY_LATENCY = Latency(LocalDateTime.MIN, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long
+        .MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE)

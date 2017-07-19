@@ -3,10 +3,12 @@ package io.redutan.nbasearc.monitoring.collector.parser
 import io.redutan.nbasearc.monitoring.collector.Latency
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDateTime
 
+@Suppress("UNUSED_VARIABLE")
 /**
  * @author myeongju.jung
  */
@@ -46,5 +48,34 @@ class LatencyParserTest {
         val latency = latencyParser.parse(now, line)
         // then
         assertLatency(latency, now, 11, 53, 1_090, 13, 7, 2, 11, 22, 33, 44, 55, 66, 77, 88)
+    }
+
+    @Test(expected = NbaseArcServerException::class)
+    fun testParse_ConnectionTimeoutException() {
+        // given
+        val now = LocalDateTime.now()
+        val line = "ConnectionTimeoutException"
+        // when
+        val latency = latencyParser.parse(now, line)
+        // then
+        fail()
+    }
+
+    @Test
+    fun testParse_Ignores() {
+        // given
+        val now = LocalDateTime.now()
+        val lines = listOf(
+            "+-------------------------------------------------------------------------------------------------------------------------------+",
+            "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |",
+            "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |"
+        )
+        print("""lines.size = ${lines.size}""")
+        lines
+                .map { // when
+                    latencyParser.parse(now, it)
+                    // then
+                }
+                .forEach { assertThat(it.isEmpty(), equalTo(true)) }
     }
 }
