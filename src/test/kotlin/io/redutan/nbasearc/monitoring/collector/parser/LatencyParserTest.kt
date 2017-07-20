@@ -27,14 +27,12 @@ class LatencyParserTest {
         // when
         val latency = latencyParser.parse(now, line)
         // then
-        assertLatency(latency, now, 0, 52, 1_080, 13, 7, 2, 1, 2, 3, 4, 5, 6, 7, 8)
+        assertLatency(latency, now, 1_080, 13, 7, 2, 1, 2, 3, 4, 5, 6, 7, 8)
     }
 
-    private fun assertLatency(latency: Latency, datetime: LocalDateTime, minute: Int, second: Int, under1ms: Long, under2ms: Long, under4ms: Long,
-                              under8ms: Long, under16ms: Long, under32ms: Long, under64ms: Long, under128ms: Long, under256ms: Long, under512ms: Long,
-                              under1024ms: Long, over1024ms: Long) {
-        val expectedDateTime = datetime.changeMinuteAndSecond(minute, second)
-        assertThat(latency, equalTo(Latency(expectedDateTime, under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms, under128ms,
+    private fun assertLatency(latency: Latency, datetime: LocalDateTime, under1ms: Long, under2ms: Long, under4ms: Long, under8ms: Long, under16ms: Long,
+                              under32ms: Long, under64ms: Long, under128ms: Long, under256ms: Long, under512ms: Long, under1024ms: Long, over1024ms: Long) {
+        assertThat(latency, equalTo(Latency(datetime, under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms, under128ms,
                 under256ms, under512ms, under1024ms, over1024ms)))
     }
 
@@ -46,7 +44,7 @@ class LatencyParserTest {
         // when
         val latency = latencyParser.parse(now, line)
         // then
-        assertLatency(latency, now, 11, 53, 1_090, 13, 7, 2, 11, 22, 33, 44, 55, 66, 77, 88)
+        assertLatency(latency, now, 1_090, 13, 7, 2, 11, 22, 33, 44, 55, 66, 77, 88)
     }
 
     @Test

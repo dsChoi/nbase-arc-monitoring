@@ -10,7 +10,7 @@ val UNKNOWN_HEADER = NbaseArcLogHeader(LocalDateTime.now(), UNKNOWN)
  * @author myeongju.jung
  */
 interface Parser<out T : NbaseArcLog> {
-    fun parse(dateAndHour: LocalDateTime, line: String): T
+    fun parse(current: LocalDateTime, line: String): T
 }
 
 interface HeaderParser {
@@ -21,6 +21,10 @@ interface HeaderParser {
 
 data class NbaseArcLogHeader(val current: LocalDateTime, val clusterName: String, override val errorDescription: String = "")
     : NbaseArcLog {
+    override fun isSuccess(): Boolean {
+        return !isUnknown() && !isError()
+    }
+
     fun isUnknown(): Boolean {
         return UNKNOWN == clusterName
     }

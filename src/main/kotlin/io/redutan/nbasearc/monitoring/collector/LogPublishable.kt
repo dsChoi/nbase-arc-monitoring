@@ -7,13 +7,14 @@ import io.reactivex.Observable
  * @author myeongju.jung
  */
 interface LogPublishable<T: NbaseArcLog> {
-    fun observe(interval: Int = 1): Observable<T>
+    fun observe(): Observable<T>
 }
 
 /**
  * nbase-arc 로그 모델 : Marked interface
  */
 interface NbaseArcLog {
+    fun isSuccess(): Boolean
     fun isError(): Boolean
     val errorDescription: String
 }
