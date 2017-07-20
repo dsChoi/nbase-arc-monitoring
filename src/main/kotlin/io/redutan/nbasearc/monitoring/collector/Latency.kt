@@ -19,14 +19,10 @@ data class Latency(override val loggedAt: LocalDateTime,
                    val over1024ms: Long,
                    override val errorDescription: String = "") : NbaseArcLog {
 
-    fun isUnknown(): Boolean {
+    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        errorDescription)
+
+    override fun isUnknown(): Boolean {
         return this == UNKNOWN_LATENCY
     }
-
-    override fun isSuccess(): Boolean {
-        return !isUnknown() && !isError()
-    }
-
-    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-            errorDescription)
 }

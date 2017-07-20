@@ -42,7 +42,6 @@ class FileStatLogPublisherTest {
     }
 
     private fun assertStat(stat: Stat) {
-        println(stat)
         if (stat.isError()) {
             assertLoggedAt(stat)
             assertThat(stat.errorDescription, notNullValue())

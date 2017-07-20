@@ -24,11 +24,7 @@ data class NbaseArcLogHeader(val current: LocalDateTime, val clusterName: String
     override val loggedAt: LocalDateTime
         get() = current
 
-    override fun isSuccess(): Boolean {
-        return !isUnknown() && !isError()
-    }
-
-    fun isUnknown(): Boolean {
+    override fun isUnknown(): Boolean {
         return UNKNOWN == clusterName
     }
 }

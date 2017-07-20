@@ -39,7 +39,6 @@ class FileLatencyLogPublisherTest {
     }
 
     private fun assertLatency(latency: Latency) {
-        println(latency)
         if (latency.isError()) {
             assertLoggedAt(latency)
             assertThat(latency.errorDescription, Matchers.notNullValue())

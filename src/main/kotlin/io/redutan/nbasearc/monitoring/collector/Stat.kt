@@ -10,14 +10,10 @@ data class Stat(override val loggedAt: LocalDateTime, val redis: Long, val pg: L
                 val misses: Long, val keys: Long, val expires: Long, override val errorDescription: String = "")
     : NbaseArcLog {
 
-    override fun isSuccess(): Boolean {
-        return isSuccess()
-    }
+    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, EMPTY_BYTE_VALUE, -1, -1, -1, -1, -1,
+        errorDescription)
 
-    fun isUnknown(): Boolean {
+    override fun isUnknown(): Boolean {
         return this == UNKNOWN_STAT
     }
-
-    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, EMPTY_BYTE_VALUE, -1, -1, -1, -1, -1,
-            errorDescription)
 }
