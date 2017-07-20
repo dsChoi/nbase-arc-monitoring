@@ -64,11 +64,7 @@ class LatencyParserTest {
         )
         print("""lines.size = ${lines.size}""")
         lines
-                .map {
-                    // when
-                    latencyParser.parse(now, it)
-                    // then
-                }
+                .map { latencyParser.parse(now, it) }
                 .forEach { assertThat(it.isUnknown(), equalTo(true)) }
     }
 }

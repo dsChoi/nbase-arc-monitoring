@@ -1,6 +1,7 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
 import io.redutan.nbasearc.monitoring.collector.parser.ByteValue.Unit.GB
+import org.hamcrest.CoreMatchers
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -40,35 +41,34 @@ class StatParserTest {
         assertStat(stat, now, 24, 12, 6008, ByteValue(69.57, GB), 6_030, 154_210_000, 16_500_000, 2_030_000, 25_240)
     }
 
-//    @Test
-//    fun testParse_ConnectionTimeoutException() {
-//        // given
-//        val now = LocalDateTime.now()
-//        val line = "              ConnectionTimeoutException                              "
-//        // when
-//        val latency = statParser.parse(now, line)
-//        // then
-//        Assert.assertThat(latency.isError(), CoreMatchers.equalTo(true))
-//        Assert.assertThat(latency.errorDescription, CoreMatchers.equalTo("ConnectionTimeoutException"))
-//    }
-//
-//    @Test
-//    fun testParse_Unknowns() {
-//        // given
-//        val now = LocalDateTime.now()
-//        val lines = listOf(
-//                "+-------------------------------------------------------------------------------------------------------------------------------+",
-//                "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |",
-//                "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |"
-//        )
-//        print("""lines.size = ${lines.size}""")
-//        lines
-//                .map {
-//                    // when
-//                    statParser.parse(now, it)
-//                    // then
-//                }
-//                .forEach { Assert.assertThat(it.isUnknown(), CoreMatchers.equalTo(true)) }
-//    }
+    @Test
+    fun testParse_ConnectionTimeoutException() {
+        // given
+        val now = LocalDateTime.now()
+        val line = "              ConnectionTimeoutException                              "
+        // when
+        val stat = statParser.parse(now, line)
+        // then
+        assertThat(stat.isError(), CoreMatchers.equalTo(true))
+        assertThat(stat.errorDescription, CoreMatchers.equalTo("ConnectionTimeoutException"))
+    }
+
+    @Test
+    fun testParse_Unknowns() {
+        // given
+        val now = LocalDateTime.now()
+        val lines = listOf(
+                "+-------------------------------------------------------------------------------------------------------------------------------+",
+                "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |",
+                "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |",
+                "+------------------------------------------------------------------------------------------------------+",
+                "|  2017-03-24 02:02:12, CLUSTER:ticketlink_cluster_1                                                   |",
+                "|  Time | Redis |  PG  | Connection |    Mem    |   OPS   |   Hits   |  Misses  |   Keys   |  Expires  |"
+        )
+        print("""lines.size = ${lines.size}""")
+        lines
+                .map { statParser.parse(now, it) }
+                .forEach { assertThat(it.isUnknown(), CoreMatchers.equalTo(true)) }
+    }
 }
 
