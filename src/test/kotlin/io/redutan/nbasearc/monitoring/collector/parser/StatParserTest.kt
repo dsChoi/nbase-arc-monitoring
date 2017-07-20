@@ -29,17 +29,17 @@ class StatParserTest {
         assertThat(stat, equalTo(Stat(datetime, redis, pg, connection, mem, ops, hits, misses, keys, expires)))
     }
 
-//    @Test
-//    fun testParse_Another() {
-//        // given
-//        val now = LocalDateTime.now()
-//        val line = "| 11:53 |  1.09 K |      13 |       7 |       2 |      11 |      22 |      33 |      44 |      55 |      66 |      77 |      88 |"
-//        // when
-//        val latency = statParser.parse(now, line)
-//        // then
-//        assertStat(latency, now, 1_090, 13, 7, 2, 11, 22, 33, 44, 55, 66, 77, 88)
-//    }
-//
+    @Test
+    fun testParse_Another() {
+        // given
+        val now = LocalDateTime.now()
+        val line = "| 02:12 |    24 |   12 |       6008 |  69.57 GB |  6.03 K | 154.21 M |  16.50 M |   2.03 M |   25.24 K |"
+        // when
+        val stat = statParser.parse(now, line)
+        // then
+        assertStat(stat, now, 24, 12, 6008, ByteValue(69.57, GB), 6_030, 154_210_000, 16_500_000, 2_030_000, 25_240)
+    }
+
 //    @Test
 //    fun testParse_ConnectionTimeoutException() {
 //        // given

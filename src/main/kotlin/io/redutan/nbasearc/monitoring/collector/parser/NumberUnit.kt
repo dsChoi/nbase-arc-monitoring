@@ -1,5 +1,7 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
+import java.math.BigDecimal
+
 enum class NumberUnit(val symbol: String, val unit: Long) {
     NONE("", 1) {
         override fun match(value: String): Boolean {
@@ -14,7 +16,14 @@ enum class NumberUnit(val symbol: String, val unit: Long) {
     open fun match(value: String): Boolean {
         return value.contains(symbol)
     }
+
+    /**
+     * "69.40 K" 를 숫자로 변경
+     */
     fun toLong(value: String): Long {
-        return (value.replace(symbol, "").trim().toDouble() * unit).toLong()
+        // BigDecimal 을 사용하는 이유는 부동소수점 정확도 이슈 때문
+        val significand = BigDecimal.valueOf(value.replace(symbol, "").trim().toDouble())   // 69.40
+        val unit = BigDecimal.valueOf(unit) // K
+        return significand.multiply(unit).toLong() // 69.40 * 1_000
     }
 }
