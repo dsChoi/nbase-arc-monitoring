@@ -1,23 +1,24 @@
 package io.redutan.nbasearc.monitoring.collector
 
 import io.reactivex.Observable
+import io.redutan.nbasearc.monitoring.collector.parser.Stat
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Stream
 
-private const val FILE_NAME = "latency-each-1seconds.txt"
+private const val FILE_NAME = "stat-each-1seconds.txt"
 
 /**
  *
  * @author myeongju.jung
  */
-class FileLatencyLogPublisher(private val parser: Parser<Latency>,
-                              private val headerParser: HeaderParser)
-    : LogPublishable<Latency> {
+class FileStatLogPublisher(private val parser: Parser<Stat>,
+                           private val headerParser: HeaderParser)
+    : LogPublishable<Stat> {
 
-    override fun observe(): Observable<Latency> {
+    override fun observe(): Observable<Stat> {
         val lineStream = getFileLineStream()
-        return Observable.create<Latency> { e ->
+        return Observable.create<Stat> { e ->
             var header = UNKNOWN_HEADER  // header 초기화
             var currentDateTime = header.current
             lineStream.forEach {

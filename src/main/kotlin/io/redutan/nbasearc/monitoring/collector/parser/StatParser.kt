@@ -54,7 +54,7 @@ class StatParser : Parser<Stat> {
 
 val UNKNOWN_STAT = Stat(LocalDateTime.MIN)
 
-data class Stat(val loggedAt: LocalDateTime, val redis: Long, val pg: Long, val connection: Long, val mem: ByteValue, val ops: Long, val hits: Long,
+data class Stat(override val loggedAt: LocalDateTime, val redis: Long, val pg: Long, val connection: Long, val mem: ByteValue, val ops: Long, val hits: Long,
                 val misses: Long, val keys: Long, val expires: Long, override val errorDescription: String = "")
     : NbaseArcLog {
 

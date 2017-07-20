@@ -13,7 +13,7 @@ class LatencyLogPublisher : LogPublishable<Latency> {
     }
 }
 
-data class Latency(val loggedAt: LocalDateTime,
+data class Latency(override val loggedAt: LocalDateTime,
                    val under1ms: Long,
                    val under2ms: Long,
                    val under4ms: Long,

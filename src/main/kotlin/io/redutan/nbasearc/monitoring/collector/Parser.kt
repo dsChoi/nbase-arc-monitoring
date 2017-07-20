@@ -21,6 +21,9 @@ interface HeaderParser {
 
 data class NbaseArcLogHeader(val current: LocalDateTime, val clusterName: String, override val errorDescription: String = "")
     : NbaseArcLog {
+    override val loggedAt: LocalDateTime
+        get() = current
+
     override fun isSuccess(): Boolean {
         return !isUnknown() && !isError()
     }
