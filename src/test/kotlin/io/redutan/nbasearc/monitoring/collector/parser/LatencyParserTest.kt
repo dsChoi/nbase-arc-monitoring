@@ -54,7 +54,7 @@ class LatencyParserTest {
     fun testParse_ConnectionTimeoutException() {
         // given
         val now = LocalDateTime.now()
-        val line = "ConnectionTimeoutException"
+        val line = "              ConnectionTimeoutException                              "
         // when
         val latency = latencyParser.parse(now, line)
         // then
@@ -62,7 +62,7 @@ class LatencyParserTest {
     }
 
     @Test
-    fun testParse_Ignores() {
+    fun testParse_Unknowns() {
         // given
         val now = LocalDateTime.now()
         val lines = listOf(
@@ -76,6 +76,6 @@ class LatencyParserTest {
                     latencyParser.parse(now, it)
                     // then
                 }
-                .forEach { assertThat(it.isEmpty(), equalTo(true)) }
+                .forEach { assertThat(it.isUnknown(), equalTo(true)) }
     }
 }

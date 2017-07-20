@@ -1,6 +1,6 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
-import io.redutan.nbasearc.monitoring.collector.EMPTY_LATENCY
+import io.redutan.nbasearc.monitoring.collector.UNKNOWN_LATENCY
 import io.redutan.nbasearc.monitoring.collector.Latency
 import io.redutan.nbasearc.monitoring.collector.Parser
 import java.time.LocalDateTime
@@ -31,11 +31,11 @@ class LatencyParser : Parser<Latency> {
             throw NbaseArcServerException(line.trim())
         }
         if (line.length != LATENCY_STRING_LENGTH) {
-            return EMPTY_LATENCY
+            return UNKNOWN_LATENCY
         }
         val items = line.split(delimiters = "|")
         if (items.size != LATENCY_STRING_SPLIT_SIZE) {
-            return EMPTY_LATENCY
+            return UNKNOWN_LATENCY
         }
         try {
             val minuteAndSecondString = items[IDX_MINUTE_AND_SECOND]
@@ -56,7 +56,7 @@ class LatencyParser : Parser<Latency> {
             return Latency(dateAndHour.changeMinuteAndSecond(minute, second), under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms,
                     under128ms, under256ms, under512ms, under1024ms, over1024ms)
         } catch (e: Throwable) {
-            return EMPTY_LATENCY
+            return UNKNOWN_LATENCY
         }
     }
 
