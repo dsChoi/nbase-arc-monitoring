@@ -1,7 +1,8 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
-import io.redutan.nbasearc.monitoring.collector.NbaseArcLog
 import io.redutan.nbasearc.monitoring.collector.Parser
+import io.redutan.nbasearc.monitoring.collector.Stat
+import io.redutan.nbasearc.monitoring.collector.UNKNOWN_STAT
 import java.time.LocalDateTime
 
 private const val IDX_REDIS = 2
@@ -50,23 +51,5 @@ class StatParser : Parser<Stat> {
             return UNKNOWN_STAT
         }
     }
-}
-
-val UNKNOWN_STAT = Stat(LocalDateTime.MIN)
-
-data class Stat(override val loggedAt: LocalDateTime, val redis: Long, val pg: Long, val connection: Long, val mem: ByteValue, val ops: Long, val hits: Long,
-                val misses: Long, val keys: Long, val expires: Long, override val errorDescription: String = "")
-    : NbaseArcLog {
-
-    override fun isSuccess(): Boolean {
-        return isSuccess()
-    }
-
-    fun isUnknown(): Boolean {
-        return this == UNKNOWN_STAT
-    }
-
-    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, EMPTY_BYTE_VALUE, -1, -1, -1, -1, -1,
-            errorDescription)
 }
 

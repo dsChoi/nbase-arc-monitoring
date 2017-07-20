@@ -1,5 +1,6 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
+import io.redutan.nbasearc.monitoring.collector.Stat
 import io.redutan.nbasearc.monitoring.collector.parser.ByteValue.Unit.GB
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matchers.equalTo

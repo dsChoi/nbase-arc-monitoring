@@ -3,7 +3,6 @@ package io.redutan.nbasearc.monitoring.collector
 import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.EMPTY_BYTE_VALUE
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
-import io.redutan.nbasearc.monitoring.collector.parser.Stat
 import io.redutan.nbasearc.monitoring.collector.parser.StatParser
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matchers.*

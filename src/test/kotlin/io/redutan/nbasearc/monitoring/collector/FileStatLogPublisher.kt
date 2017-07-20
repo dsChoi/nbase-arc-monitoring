@@ -1,7 +1,6 @@
 package io.redutan.nbasearc.monitoring.collector
 
 import io.reactivex.Observable
-import io.redutan.nbasearc.monitoring.collector.parser.Stat
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Stream
