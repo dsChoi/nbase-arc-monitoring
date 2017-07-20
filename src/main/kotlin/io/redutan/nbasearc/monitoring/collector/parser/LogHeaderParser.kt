@@ -1,32 +1,36 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
-import io.redutan.nbasearc.monitoring.collector.NbaseArcLog
-import io.redutan.nbasearc.monitoring.collector.Parser
+import io.redutan.nbasearc.monitoring.collector.HeaderParser
+import io.redutan.nbasearc.monitoring.collector.NbaseArcLogHeader
+import io.redutan.nbasearc.monitoring.collector.UNKNOWN
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
-const val UNKNOWN = "UNKNOWN"
 
 /**
  *
  * @author myeongju.jung
  */
-class HeaderParser : Parser<LogHeader>{
+class LogHeaderParser : HeaderParser {
     private val headerStringSplitSize = 3
     private val idxContent = 1
 
-    override fun parse(dateAndHour: LocalDateTime, line: String): LogHeader {
+    override fun isHeader(line: String): Boolean {
+        val items = line.split(delimiters = "|")
+        return items.size == headerStringSplitSize
+    }
+
+    override fun parse(line: String): NbaseArcLogHeader {
         if (line.contains("Exception")) {
             throw NbaseArcServerException(line.trim())
         }
-        val items = line.split(delimiters = "|")
-        if (items.size != headerStringSplitSize) {
-            return LogHeader(LocalDateTime.now(), UNKNOWN)
+        if (!isHeader(line)) {
+            return NbaseArcLogHeader(LocalDateTime.now(), UNKNOWN)
         }
+        val items = line.split(delimiters = "|")
         val content = items[idxContent].trim()
         val logDatetime = getLogDatetime(content)
         val clusterName = getClusterName(content)
-        return LogHeader(logDatetime, clusterName)
+        return NbaseArcLogHeader(logDatetime, clusterName)
     }
 
     private val dateTimeStringLength = 19
@@ -44,11 +48,5 @@ class HeaderParser : Parser<LogHeader>{
             return UNKNOWN
         }
         return content.substring(clusterIndex + clusterTitle.length).trim()
-    }
-}
-
-data class LogHeader(val current: LocalDateTime, val clusterName: String) : NbaseArcLog {
-    fun isUnknown(): Boolean {
-        return UNKNOWN == clusterName
     }
 }

@@ -31,5 +31,5 @@ data class Latency(val expectedDateTime: LocalDateTime,
     }
 }
 
-val UNKNOWN_LATENCY = Latency(LocalDateTime.MIN, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long
-        .MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE)
+val UNKNOWN_LATENCY = Latency(LocalDateTime.MIN, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        Long.MIN_VALUE)
