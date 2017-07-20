@@ -13,4 +13,7 @@ interface LogPublishable<T: NbaseArcLog> {
 /**
  * nbase-arc 로그 모델 : Marked interface
  */
-interface NbaseArcLog
+interface NbaseArcLog {
+    fun isError(): Boolean
+    val errorDescription: String
+}

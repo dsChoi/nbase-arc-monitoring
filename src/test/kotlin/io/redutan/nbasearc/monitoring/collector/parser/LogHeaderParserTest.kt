@@ -3,7 +3,6 @@ package io.redutan.nbasearc.monitoring.collector.parser
 import io.redutan.nbasearc.monitoring.collector.NbaseArcLogHeader
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
-import org.junit.Assert.fail
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.Month
@@ -50,14 +49,15 @@ class LogHeaderParserTest {
         assertThat(header, equalTo(NbaseArcLogHeader(LocalDateTime.of(2017, Month.MARCH, 24, 1, 59, 42), "ticketlink_cluster_1")))
     }
 
-    @Test(expected = NbaseArcServerException::class)
+    @Test
     fun testParse_ConnectionTimeoutException() {
         // given
         val line = "                 ConnectionTimeoutException                       "
         // when
-        headerParser.parse(line)
+        val header = headerParser.parse(line)
         // then
-        fail()
+        assertThat(header.isError(), equalTo(true))
+        assertThat(header.errorDescription, equalTo("ConnectionTimeoutException"))
     }
 
     @Test

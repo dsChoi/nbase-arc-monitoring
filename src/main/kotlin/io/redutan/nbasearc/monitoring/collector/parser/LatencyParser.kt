@@ -1,8 +1,8 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
-import io.redutan.nbasearc.monitoring.collector.UNKNOWN_LATENCY
 import io.redutan.nbasearc.monitoring.collector.Latency
 import io.redutan.nbasearc.monitoring.collector.Parser
+import io.redutan.nbasearc.monitoring.collector.UNKNOWN_LATENCY
 import java.time.LocalDateTime
 
 /**
@@ -28,7 +28,7 @@ class LatencyParser : Parser<Latency> {
 
     override fun parse(dateAndHour: LocalDateTime, line: String): Latency {
         if (line.contains("Exception")) {
-            throw NbaseArcServerException(line.trim())
+            return Latency(LocalDateTime.now(), line.trim())
         }
         if (line.length != LATENCY_STRING_LENGTH) {
             return UNKNOWN_LATENCY
@@ -68,10 +68,10 @@ class LatencyParser : Parser<Latency> {
     }
 }
 
-data class NbaseArcServerException(val exceptionString: String) : Throwable()
+class NbaseArcServerException(override val message: String?) : Throwable()
 
-fun LocalDateTime.changeMinuteAndSecond(minutes: Int, seconds: Int): LocalDateTime {
-    return LocalDateTime.of(year, month, dayOfMonth, hour, minutes, seconds)
+fun LocalDateTime.changeMinuteAndSecond(minute: Int, second: Int): LocalDateTime {
+    return LocalDateTime.of(year, month, dayOfMonth, hour, minute, second)
 }
 
 enum class NumberUnit(val symbol: String, val unit: Long) {

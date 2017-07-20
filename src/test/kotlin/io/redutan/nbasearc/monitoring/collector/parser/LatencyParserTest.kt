@@ -3,7 +3,6 @@ package io.redutan.nbasearc.monitoring.collector.parser
 import io.redutan.nbasearc.monitoring.collector.Latency
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDateTime
@@ -50,7 +49,7 @@ class LatencyParserTest {
         assertLatency(latency, now, 11, 53, 1_090, 13, 7, 2, 11, 22, 33, 44, 55, 66, 77, 88)
     }
 
-    @Test(expected = NbaseArcServerException::class)
+    @Test
     fun testParse_ConnectionTimeoutException() {
         // given
         val now = LocalDateTime.now()
@@ -58,7 +57,8 @@ class LatencyParserTest {
         // when
         val latency = latencyParser.parse(now, line)
         // then
-        fail()
+        assertThat(latency.isError(), equalTo(true))
+        assertThat(latency.errorDescription, equalTo("ConnectionTimeoutException"))
     }
 
     @Test

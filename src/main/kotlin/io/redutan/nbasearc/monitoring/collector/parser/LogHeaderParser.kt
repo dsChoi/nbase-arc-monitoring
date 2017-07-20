@@ -21,7 +21,8 @@ class LogHeaderParser : HeaderParser {
 
     override fun parse(line: String): NbaseArcLogHeader {
         if (line.contains("Exception")) {
-            throw NbaseArcServerException(line.trim())
+            // 오류 생성자
+            return NbaseArcLogHeader(LocalDateTime.now(), "", line.trim())
         }
         if (!isHeader(line)) {
             return NbaseArcLogHeader(LocalDateTime.now(), UNKNOWN)

@@ -13,7 +13,7 @@ class LatencyLogPublisher : LogPublishable<Latency> {
     }
 }
 
-data class Latency(val expectedDateTime: LocalDateTime,
+data class Latency(val loggedAt: LocalDateTime,
                    val under1ms: Long,
                    val under2ms: Long,
                    val under4ms: Long,
@@ -25,11 +25,29 @@ data class Latency(val expectedDateTime: LocalDateTime,
                    val under256ms: Long,
                    val under512ms: Long,
                    val under1024ms: Long,
-                   val over1024ms: Long) : NbaseArcLog {
+                   val over1024ms: Long,
+                   override val errorDescription: String = "") : NbaseArcLog {
+    override fun isError(): Boolean {
+        return errorDescription.isNotEmpty()
+    }
+
     fun isUnknown(): Boolean {
         return this == UNKNOWN_LATENCY
     }
+
+    fun syncHour(headerDateTime: LocalDateTime): Latency {
+        if (this.loggedAt >= headerDateTime) {
+            return this
+        }
+        println("syncHour : " + loggedAt)
+        return this.copy(loggedAt = loggedAt.plusHours(1),
+                under1ms = under1ms, under2ms = under2ms, under4ms = under4ms, under8ms = under8ms, under16ms = under16ms, under32ms = under32ms,
+                under64ms = under64ms, under128ms = under128ms, under256ms = under256ms, under512ms = under512ms, under1024ms = under1024ms,
+                over1024ms = over1024ms)
+    }
+
+    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            errorDescription)
 }
 
-val UNKNOWN_LATENCY = Latency(LocalDateTime.MIN, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        Long.MIN_VALUE)
+val UNKNOWN_LATENCY = Latency(LocalDateTime.MIN)

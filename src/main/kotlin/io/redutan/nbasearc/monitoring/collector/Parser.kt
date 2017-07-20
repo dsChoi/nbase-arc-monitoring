@@ -2,7 +2,7 @@ package io.redutan.nbasearc.monitoring.collector
 
 import java.time.LocalDateTime
 
-const val UNKNOWN = "UNKNOWN"
+const val UNKNOWN = "?"
 val UNKNOWN_HEADER = NbaseArcLogHeader(LocalDateTime.now(), UNKNOWN)
 
 /**
@@ -19,8 +19,13 @@ interface HeaderParser {
     fun parse(line: String): NbaseArcLogHeader
 }
 
-data class NbaseArcLogHeader(val current: LocalDateTime, val clusterName: String) : NbaseArcLog {
+data class NbaseArcLogHeader(val current: LocalDateTime, val clusterName: String, override val errorDescription: String = "")
+    : NbaseArcLog {
     fun isUnknown(): Boolean {
         return UNKNOWN == clusterName
+    }
+
+    override fun isError(): Boolean {
+        return errorDescription.isNotEmpty()
     }
 }
