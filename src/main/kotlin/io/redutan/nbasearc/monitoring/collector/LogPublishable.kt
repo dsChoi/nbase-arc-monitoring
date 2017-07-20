@@ -15,6 +15,6 @@ interface LogPublishable<T: NbaseArcLog> {
  */
 interface NbaseArcLog {
     fun isSuccess(): Boolean
-    fun isError(): Boolean
+    fun isError() = errorDescription.isNotEmpty()
     val errorDescription: String
 }

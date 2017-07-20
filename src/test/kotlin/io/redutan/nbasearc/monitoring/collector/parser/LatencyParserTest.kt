@@ -3,7 +3,6 @@ package io.redutan.nbasearc.monitoring.collector.parser
 import io.redutan.nbasearc.monitoring.collector.Latency
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
-import org.junit.Before
 import org.junit.Test
 import java.time.LocalDateTime
 
@@ -13,11 +12,6 @@ import java.time.LocalDateTime
  */
 class LatencyParserTest {
     var latencyParser = LatencyParser()
-
-    @Before
-    fun setUp() {
-        latencyParser = LatencyParser()
-    }
 
     @Test
     fun testParse() {
@@ -64,13 +58,14 @@ class LatencyParserTest {
         // given
         val now = LocalDateTime.now()
         val lines = listOf(
-            "+-------------------------------------------------------------------------------------------------------------------------------+",
-            "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |",
-            "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |"
+                "+-------------------------------------------------------------------------------------------------------------------------------+",
+                "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |",
+                "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |"
         )
         print("""lines.size = ${lines.size}""")
         lines
-                .map { // when
+                .map {
+                    // when
                     latencyParser.parse(now, it)
                     // then
                 }

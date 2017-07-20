@@ -28,8 +28,4 @@ data class NbaseArcLogHeader(val current: LocalDateTime, val clusterName: String
     fun isUnknown(): Boolean {
         return UNKNOWN == clusterName
     }
-
-    override fun isError(): Boolean {
-        return errorDescription.isNotEmpty()
-    }
 }
