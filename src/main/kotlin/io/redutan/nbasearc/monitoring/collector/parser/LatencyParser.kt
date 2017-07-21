@@ -5,8 +5,6 @@ import io.redutan.nbasearc.monitoring.collector.Parser
 import io.redutan.nbasearc.monitoring.collector.UNKNOWN_LATENCY
 import java.time.LocalDateTime
 
-@Suppress("unused")
-private const val IDX_MINUTE_AND_SECOND = 1
 private const val IDX_UNDER_1MS = 2
 private const val IDX_UNDER_2MS = 3
 private const val IDX_UNDER_4MS = 4
@@ -19,6 +17,7 @@ private const val IDX_UNDER_256MS = 10
 private const val IDX_UNDER_512MS = 11
 private const val IDX_UNDER_1024MS = 12
 private const val IDX_OVER_1024MS = 13
+
 private const val LATENCY_STRING_LENGTH = 129
 private const val LATENCY_STRING_SPLIT_SIZE = 15
 
