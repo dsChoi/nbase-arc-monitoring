@@ -2,11 +2,10 @@ package io.redutan.nbasearc.monitoring.collector.parser
 
 import io.redutan.nbasearc.monitoring.collector.Stat
 import io.redutan.nbasearc.monitoring.collector.parser.ByteValue.Unit.GB
-import org.hamcrest.CoreMatchers
-import org.hamcrest.Matchers.equalTo
-import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.LocalDateTime
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  *
@@ -28,7 +27,7 @@ class StatParserTest {
 
     private fun assertStat(stat: Stat, datetime: LocalDateTime, redis: Long, pg: Long, connection: Long, mem: ByteValue, ops: Long,
                            hits: Long, misses: Long, keys: Long, expires: Long) {
-        assertThat(stat, equalTo(Stat(datetime, redis, pg, connection, mem, ops, hits, misses, keys, expires)))
+        assertEquals(Stat(datetime, redis, pg, connection, mem, ops, hits, misses, keys, expires), stat)
     }
 
     @Test
@@ -50,8 +49,8 @@ class StatParserTest {
         // when
         val stat = statParser.parse(now, line)
         // then
-        assertThat(stat.isError(), CoreMatchers.equalTo(true))
-        assertThat(stat.errorDescription, CoreMatchers.equalTo("ConnectionTimeoutException"))
+        assertTrue(stat.isError())
+        assertEquals("ConnectionTimeoutException", stat.errorDescription)
     }
 
     @Test
@@ -66,10 +65,10 @@ class StatParserTest {
                 "|  2017-03-24 02:02:12, CLUSTER:ticketlink_cluster_1                                                   |",
                 "|  Time | Redis |  PG  | Connection |    Mem    |   OPS   |   Hits   |  Misses  |   Keys   |  Expires  |"
         )
-        print("""lines.size = ${lines.size}""")
+        print("lines.size = ${lines.size}")
         lines
                 .map { statParser.parse(now, it) }
-                .forEach { assertThat(it.isUnknown(), CoreMatchers.equalTo(true)) }
+                .forEach { assertTrue(it.isUnknown()) }
     }
 }
 

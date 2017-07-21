@@ -78,8 +78,9 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
     private fun isAlive() = process?.isAlive ?: false
 
     override fun dispose() {
-        if (isCallProcess)
+        if (isCallProcess) {
             process?.destroyForcibly()
+        }
     }
 
     override fun close() {

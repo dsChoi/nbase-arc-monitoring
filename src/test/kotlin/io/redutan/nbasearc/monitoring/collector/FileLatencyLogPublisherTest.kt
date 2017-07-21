@@ -4,9 +4,11 @@ import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.LatencyParser
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.Matchers
 import org.junit.Assert.assertThat
 import org.junit.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * @author myeongju.jung
@@ -41,22 +43,22 @@ class FileLatencyLogPublisherTest {
     private fun assertLatency(latency: Latency) {
         if (latency.isError()) {
             assertLoggedAt(latency)
-            assertThat(latency.errorDescription, Matchers.notNullValue())
+            assertNotNull(latency.errorDescription)
             return
         }
-        assertThat(latency.isUnknown(), equalTo(false))
+        assertFalse(latency.isUnknown())
         assertLoggedAt(latency)
-        assertThat(latency.under1ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under2ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under4ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under8ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under16ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under32ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under64ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under128ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under256ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under512ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.under1024ms, Matchers.greaterThanOrEqualTo(0L))
-        assertThat(latency.over1024ms, Matchers.greaterThanOrEqualTo(0L))
+        assertTrue(latency.under1ms >= 0)
+        assertTrue(latency.under2ms >= 0)
+        assertTrue(latency.under4ms >= 0)
+        assertTrue(latency.under8ms >= 0)
+        assertTrue(latency.under16ms >= 0)
+        assertTrue(latency.under32ms >= 0)
+        assertTrue(latency.under64ms >= 0)
+        assertTrue(latency.under128ms >= 0)
+        assertTrue(latency.under256ms >= 0)
+        assertTrue(latency.under512ms >= 0)
+        assertTrue(latency.under1024ms >= 0)
+        assertTrue(latency.over1024ms >= 0)
     }
 }

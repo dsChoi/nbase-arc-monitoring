@@ -1,11 +1,12 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
 import io.redutan.nbasearc.monitoring.collector.NbaseArcLogHeader
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.Month
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * @author myeongju.jung
@@ -20,7 +21,7 @@ class LogHeaderParserTest {
         // when
         val result = headerParser.isHeader(line)
         // then
-        assertThat(result, equalTo(true))
+        assertTrue(result)
     }
 
     @Test
@@ -32,11 +33,8 @@ class LogHeaderParserTest {
                 "| 11:53 |  1.09 K |      13 |       7 |       2 |      11 |      22 |      33 |      44 |      55 |      66 |      77 |      88 |"
         )
         lines
-                .map { // when
-                    headerParser.isHeader(it)
-                    // then
-                }
-                .forEach { assertThat(it, equalTo(false)) }
+                .map { headerParser.isHeader(it) }
+                .forEach { assertFalse(it) }
     }
 
     @Test
@@ -46,8 +44,11 @@ class LogHeaderParserTest {
         // when
         val header = headerParser.parse(line)
         // then
-        assertThat(header, equalTo(NbaseArcLogHeader(LocalDateTime.of(2017, Month.MARCH, 24, 1, 59, 42), "ticketlink_cluster_1")))
+        assertEquals(
+                NbaseArcLogHeader(LocalDateTime.of(2017, Month.MARCH, 24, 1, 59, 42), "ticketlink_cluster_1"),
+                header)
     }
+
 
     @Test
     fun testParse_ConnectionTimeoutException() {
@@ -56,8 +57,8 @@ class LogHeaderParserTest {
         // when
         val header = headerParser.parse(line)
         // then
-        assertThat(header.isError(), equalTo(true))
-        assertThat(header.errorDescription, equalTo("ConnectionTimeoutException"))
+        assertTrue(header.isError())
+        assertEquals("ConnectionTimeoutException", header.errorDescription)
     }
 
     @Test
@@ -68,12 +69,9 @@ class LogHeaderParserTest {
                 "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |",
                 "| 11:53 |  1.09 K |      13 |       7 |       2 |      11 |      22 |      33 |      44 |      55 |      66 |      77 |      88 |"
         )
-        print("""lines.size = ${lines.size}""")
+        print("lines.size = ${lines.size}")
         lines
-                .map { // when
-                    headerParser.parse(it)
-                    // then
-                }
-                .forEach { assertThat(it.isUnknown(), equalTo(true)) }
+                .map { headerParser.parse(it) }
+                .forEach { assertTrue(it.isUnknown()) }
     }
 }

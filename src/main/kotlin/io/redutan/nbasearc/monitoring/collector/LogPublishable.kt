@@ -15,9 +15,9 @@ interface LogPublishable<T: NbaseArcLog> {
  * nbase-arc 로그 모델 : Marked interface
  */
 interface NbaseArcLog {
+    val loggedAt: LocalDateTime
+    val errorDescription: String
     fun isSuccess(): Boolean = !isError() && !isUnknown()
     fun isError() = errorDescription.isNotEmpty()
     fun isUnknown():Boolean
-    val errorDescription: String
-    val loggedAt: LocalDateTime
 }

@@ -19,8 +19,8 @@ data class Stat(override val loggedAt: LocalDateTime,
                 override val errorDescription: String = "")
     : NbaseArcLog {
 
-    constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, EMPTY_BYTE_VALUE, -1, -1, -1, -1, -1,
-        errorDescription)
+    constructor(loggedAt: LocalDateTime, errorDescription: String = "")
+            : this(loggedAt, -1, -1, -1, EMPTY_BYTE_VALUE, -1, -1, -1, -1, -1, errorDescription)
 
     override fun isUnknown(): Boolean {
         return this == UNKNOWN_STAT

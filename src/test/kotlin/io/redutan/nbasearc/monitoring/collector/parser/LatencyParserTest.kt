@@ -5,8 +5,9 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.LocalDateTime
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
-@Suppress("UNUSED_VARIABLE")
 /**
  * @author myeongju.jung
  */
@@ -26,8 +27,9 @@ class LatencyParserTest {
 
     private fun assertLatency(latency: Latency, datetime: LocalDateTime, under1ms: Long, under2ms: Long, under4ms: Long, under8ms: Long, under16ms: Long,
                               under32ms: Long, under64ms: Long, under128ms: Long, under256ms: Long, under512ms: Long, under1024ms: Long, over1024ms: Long) {
-        assertThat(latency, equalTo(Latency(datetime, under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms, under128ms,
-                under256ms, under512ms, under1024ms, over1024ms)))
+        assertEquals(
+                Latency(datetime, under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms, under128ms, under256ms, under512ms, under1024ms, over1024ms),
+                latency)
     }
 
     @Test
@@ -49,8 +51,8 @@ class LatencyParserTest {
         // when
         val latency = latencyParser.parse(now, line)
         // then
-        assertThat(latency.isError(), equalTo(true))
-        assertThat(latency.errorDescription, equalTo("ConnectionTimeoutException"))
+        assertTrue(latency.isError())
+        assertEquals("ConnectionTimeoutException", latency.errorDescription)
     }
 
     @Test
@@ -62,7 +64,7 @@ class LatencyParserTest {
                 "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |",
                 "|  Time |  <= 1ms |  <= 2ms |  <= 4ms |  <= 8ms | <= 16ms | <= 32ms | <= 64ms |  <= 128 |  <= 256 |  <= 512 | <= 1024 |  > 1024 |"
         )
-        print("""lines.size = ${lines.size}""")
+        print("lines.size = ${lines.size}")
         lines
                 .map { latencyParser.parse(now, it) }
                 .forEach { assertThat(it.isUnknown(), equalTo(true)) }
