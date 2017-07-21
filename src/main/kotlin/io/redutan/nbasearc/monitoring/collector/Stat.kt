@@ -6,8 +6,17 @@ import java.time.LocalDateTime
 
 val UNKNOWN_STAT = Stat(LocalDateTime.MIN)
 
-data class Stat(override val loggedAt: LocalDateTime, val redis: Long, val pg: Long, val connection: Long, val mem: ByteValue, val ops: Long, val hits: Long,
-                val misses: Long, val keys: Long, val expires: Long, override val errorDescription: String = "")
+data class Stat(override val loggedAt: LocalDateTime,
+                val redis: Long,
+                val pg: Long,
+                val connection: Long,
+                val mem: ByteValue,
+                val ops: Long,
+                val hits: Long,
+                val misses: Long,
+                val keys: Long,
+                val expires: Long,
+                override val errorDescription: String = "")
     : NbaseArcLog {
 
     constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, EMPTY_BYTE_VALUE, -1, -1, -1, -1, -1,

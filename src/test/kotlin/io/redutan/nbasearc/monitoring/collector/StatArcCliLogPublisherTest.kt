@@ -3,6 +3,8 @@ package io.redutan.nbasearc.monitoring.collector
 import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
 import io.redutan.nbasearc.monitoring.collector.parser.StatParser
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -40,7 +42,7 @@ class StatArcCliLogPublisherTest {
         val to = TestObserver<Stat>()
         // when
         val count = 5L
-        Thread {
+        launch(CommonPool) {
             observable()
                     .take(count)
                     .subscribe(to)
@@ -69,21 +71,14 @@ class StatArcCliLogPublisherTest {
                 .doOnNext { println("2 $it") }
                 .doOnComplete { println("Complete") }
                 .doOnError { println("error = $it") }
-
-
-        val thread1 = Thread {
+        launch(CommonPool) {
             latencies1.subscribe(to1)
         }
-
-        val thread2 = Thread {
+        launch(CommonPool) {
             latencies2.subscribe(to2)
         }
-
-        thread1.start()
-        thread2.start()
-
         TimeUnit.SECONDS.sleep(5)
-
+        // then
         to1.assertComplete()
         to1.assertValueCount(1)
         to2.assertComplete()

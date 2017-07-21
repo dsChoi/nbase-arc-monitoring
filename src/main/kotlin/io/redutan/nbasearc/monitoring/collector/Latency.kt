@@ -17,7 +17,8 @@ data class Latency(override val loggedAt: LocalDateTime,
                    val under512ms: Long,
                    val under1024ms: Long,
                    val over1024ms: Long,
-                   override val errorDescription: String = "") : NbaseArcLog {
+                   override val errorDescription: String = "")
+    : NbaseArcLog {
 
     constructor(loggedAt: LocalDateTime, errorDescription: String = "") : this(loggedAt, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         errorDescription)
