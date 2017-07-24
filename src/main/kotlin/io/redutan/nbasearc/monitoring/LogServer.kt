@@ -47,11 +47,16 @@ class LogServer(val logPublisherFactory: LogPublisherFactory, val logPersistence
     }
 
     fun closeSocket(session: LogSession, socket: WebSocketSession) {
-        val sockets = webSocketMap[session.id]
-        sockets?.remove(socket)
         val subscribers = subscriberMap[socket]
         subscribers?.forEach { if (!it.isDisposed) it.dispose() }
         subscriberMap.remove(socket)
+
+        val sockets = webSocketMap[session.id]
+        sockets?.remove(socket)
+        if (sockets?.isEmpty() ?: true) {
+            webSocketMap.remove(session.id)
+            clusterIds.remove(session.id)
+        }
         log.info("Closed Socket {}:{}", session.id, socket)
     }
 }
