@@ -9,12 +9,16 @@
 <div class="container">
     <nav class="navbar navbar-default navbar-fixed-top" id="menu" style="display:none;">
         <div class="container-fluid">
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <div class="collapse navbar-collapse">
                 <ul id="tabs" class="nav nav-pills nav-justified">
                     <li role="presentation"><a href="#latency" aria-controls="latency" role="tab" data-toggle="tab"
                                                onclick="displayLatency(); return true;">Latency</a></li>
                     <li role="presentation"><a href="#stat" aria-controls="stat" role="tab" data-toggle="tab" onclick="displayStat(); return true;">Stat
                     </a></li>
+                    <li class="text-center">
+                        <button id="btnStart" type="button" class="btn btn-success" onclick="start();" style="display: none;">Start</button>
+                        <button id="btnStop" type="button" class="btn btn-warning" onclick="stop();" style="display: none;">Stop</button>
+                    </li>
                 </ul>
             </div>
         </div>

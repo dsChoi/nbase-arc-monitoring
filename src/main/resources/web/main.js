@@ -1,30 +1,31 @@
 var session = null;
 var latency = null;
 var stat = null;
+var currentMenu;
 
 function isLogin() {
-    return session !== null;
+	return session !== null;
 }
 
 function login() {
-    $zkAddress = $("#zkAddress");
-    $cluster = $("#cluster");
+	$zkAddress = $("#zkAddress");
+	$cluster = $("#cluster");
 
-    if ($zkAddress.val() === "") {
-        alert("Please insert zookeepr address");
-        $zkAddress.focus();
-        return;
-    }
-    if ($cluster.val() === "") {
-        alert("Please insert cluster name");
-        $cluster.focus();
-        return;
-    }
+	if ($zkAddress.val() === "") {
+		alert("Please insert zookeepr address");
+		$zkAddress.focus();
+		return;
+	}
+	if ($cluster.val() === "") {
+		alert("Please insert cluster name");
+		$cluster.focus();
+		return;
+	}
 	session = {
-    	zkAddress: $zkAddress.val(),
+		zkAddress: $zkAddress.val(),
 		cluster: $cluster.val()
-    };
-    displayMenu();
+	};
+	displayMenu();
 }
 
 function displayMenu() {
@@ -34,17 +35,27 @@ function displayMenu() {
 }
 
 function displayLatency() {
-	if (latency !== null) {
-		return;
+	currentMenu = "latency";
+	if (latency === null) {
+		latency = new callLatency();
 	}
-	latency = callLatency();
+	if (latency.isOpen()) {
+		setStop();
+	} else {
+		setStart();
+	}
 }
 
 function displayStat() {
-	if (stat !== null) {
-		return;
+	currentMenu = "stat";
+	if (stat === null) {
+		stat = callStat();
 	}
-	stat = callStat();
+	if (stat.isOpen()) {
+		setStop();
+	} else {
+		setStart();
+	}
 }
 
 function timeToString(time) {
@@ -54,35 +65,84 @@ function timeToString(time) {
 }
 
 function scrollToBottom() {
-	$("html, body").animate({ scrollTop: $(document).height()-$(window).height() });
+	$("html, body").animate({scrollTop: $(document).height() - $(window).height()});
+}
+
+function start() {
+	if (currentMenu === "latency") {
+		if (!latency.isOpen()) {
+			latency = callLatency();
+		}
+	} else if (currentMenu === "stat") {
+		if (!stat.isOpen()) {
+			stat = callStat();
+		}
+	} else {
+		// Nothing
+	}
+	setStop();
+}
+
+function stop() {
+	if (currentMenu === "latency") {
+		if (latency.isOpen()) {
+			latency.close();
+		}
+	} else if (currentMenu === "stat") {
+		if (stat.isOpen()) {
+			stat.close();
+		}
+	} else {
+		// Nothing
+	}
+	setStart();
+}
+
+function setStop() {
+	$("#btnStart").hide();
+	$("#btnStop").show();
+}
+
+function setStart() {
+	$("#btnStart").show();
+	$("#btnStop").hide();
 }
 
 function callLatency() {
-	var socket = null;
+	var _socket = null;
+	var _isOpen = false;
 
-    console.log("Begin Latency " + session.zkAddress + " " + session.cluster);
-    socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+	console.log("Open Latency " + session.zkAddress + " " + session.cluster);
+	_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
 
-    socket.onerror = function() {
-        console.log("Latency socket error");
-    };
+	_socket.onerror = function () {
+		console.log("Latency socket error");
+	};
 
-    socket.onopen = function() {
-        console.log("Latency Connected");
-        socket.send("/latencies")
-    };
+	_socket.onopen = function () {
+		console.log("Latency Connected");
+		_isOpen = true;
+		setStop();
+		_socket.send("/latencies")
+	};
 
-    socket.onclose = function() {
-        console.log("Latency disconnected");
-        setTimeout(Latency, 5000);
-    };
+	_socket.onclose = function () {
+		console.log("Latency disconnected");
+		_isOpen = false;
+		setStart();
+		// setTimeout(callLatency, 5000);
+	};
 
-    socket.onmessage = function(event) {
-        received(event.data);
-    };
+	_socket.onmessage = function (event) {
+		received(event.data);
+	};
+
+	function isOpen() {
+		return _isOpen;
+	}
 
 	function close() {
-		socket.close()
+		_socket.close();
 	}
 
 	var rowCount = 1;
@@ -129,36 +189,51 @@ function callLatency() {
 		rowCount++;
 		scrollToBottom();
 	}
+
+	return {
+		close: close,
+		isOpen: isOpen,
+	}
 }
 
 function callStat() {
-	var socket = null;
+	var _socket = null;
+	var _isOpen = false;
 
-	console.log("Begin Stat" + session.zkAddress + " " + session.cluster);
-	socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
-	socket.onerror = function() {
+	console.log("Open Stat" + session.zkAddress + " " + session.cluster);
+	_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+	_socket.onerror = function () {
 		console.log("Stat socket error");
 	};
 
-	socket.onopen = function() {
+	_socket.onopen = function () {
 		console.log("Stat Connected");
-		socket.send("/stats")
+		_isOpen = true;
+		setStop();
+		_socket.send("/stats")
 	};
 
-	socket.onclose = function() {
+	_socket.onclose = function () {
 		console.log("Stat disconnected");
-		setTimeout(Stat, 5000);
+		_isOpen = false;
+		setStart();
+		// setTimeout(callStat, 5000);
 	};
 
-	socket.onmessage = function(event) {
+	_socket.onmessage = function (event) {
 		received(event.data);
 	};
 
-	function close() {
-	    socket.close()
-    }
+	function isOpen() {
+		return _isOpen;
+	}
 
-    var rowCount = 1;
+	function close() {
+		_socket.close();
+	}
+
+	var rowCount = 1;
 
 	function received(message) {
 		var stat = JSON.parse(message);
@@ -195,6 +270,11 @@ function callStat() {
 		}
 		rowCount++;
 		scrollToBottom();
+	}
+
+	return {
+		close: close,
+		isOpen: isOpen
 	}
 }
 
