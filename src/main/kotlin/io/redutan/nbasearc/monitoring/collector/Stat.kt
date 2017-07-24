@@ -4,7 +4,7 @@ import io.redutan.nbasearc.monitoring.collector.parser.ByteValue
 import io.redutan.nbasearc.monitoring.collector.parser.EMPTY_BYTE_VALUE
 import java.time.LocalDateTime
 
-val UNKNOWN_STAT = Stat(LocalDateTime.MIN)
+val UNKNOWN_STAT: Stat = Stat(LocalDateTime.MIN)
 
 data class Stat(override val loggedAt: LocalDateTime,
                 val redis: Long,

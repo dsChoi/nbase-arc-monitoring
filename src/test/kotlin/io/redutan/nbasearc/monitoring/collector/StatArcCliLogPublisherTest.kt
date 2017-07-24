@@ -2,7 +2,6 @@ package io.redutan.nbasearc.monitoring.collector
 
 import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
-import io.redutan.nbasearc.monitoring.collector.parser.StatParser
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import org.junit.After
@@ -15,18 +14,15 @@ import java.util.concurrent.TimeUnit
  */
 class StatArcCliLogPublisherTest {
 
-    val statParser = StatParser()
     val headerParser = LogHeaderParser()
     val zkAddress = System.getProperty("nbase.arc.zkaddress", "localhost:2181")!!
     val cluster = System.getProperty("nbase.arc.cluster", "default")!!
-    val command = "-s"  // stat
 
     var logPublisher: ArcCliLogPublisher<Stat>? = null
 
     @Before
     fun setUp() {
-        logPublisher = ArcCliLogPublisher(statParser, headerParser,
-                zkAddress = zkAddress, cluster = cluster, command = command)
+        logPublisher = ArcCliLogPublisher(ClusterId(zkAddress, cluster), StatType,headerParser)
     }
 
     @After

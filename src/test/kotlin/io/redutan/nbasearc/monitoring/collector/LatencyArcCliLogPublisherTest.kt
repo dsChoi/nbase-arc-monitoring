@@ -1,7 +1,6 @@
 package io.redutan.nbasearc.monitoring.collector
 
 import io.reactivex.observers.TestObserver
-import io.redutan.nbasearc.monitoring.collector.parser.LatencyParser
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
@@ -13,21 +12,18 @@ import java.util.concurrent.TimeUnit
 /**
  * @author myeongju.jung
  */
+//@Ignore
 class LatencyArcCliLogPublisherTest {
 
-    val latencyParser = LatencyParser()
     val headerParser = LogHeaderParser()
     val zkAddress = System.getProperty("nbase.arc.zkaddress", "localhost:2181")!!
     val cluster = System.getProperty("nbase.arc.cluster", "default")!!
-    val command = "-l" // latency
 
     var logPublisher: ArcCliLogPublisher<Latency>? = null
 
     @Before
     fun setUp() {
-        logPublisher = ArcCliLogPublisher(latencyParser, headerParser,
-                directory = "/Users/myeongju.jung/git/nbase-arc/tools/nbase-arc-cli/",
-                zkAddress = zkAddress, cluster = cluster, command = command)
+        logPublisher = ArcCliLogPublisher(ClusterId(zkAddress, cluster), LatencyType, headerParser)
     }
 
     @After

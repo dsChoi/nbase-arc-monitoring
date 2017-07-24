@@ -2,6 +2,8 @@ package io.redutan.nbasearc.monitoring.collector
 
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
+import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
+import io.redutan.nbasearc.monitoring.logger
 import java.nio.file.Paths
 
 /**
@@ -9,10 +11,14 @@ import java.nio.file.Paths
  * @author myeongju.jung
  */
 class ArcCliLogPublisher<T : NbaseArcLog>(
-        private val parser: Parser<T>, private val headerParser: HeaderParser, private val directory: String = ".",
-        private val zkAddress: String, private val cluster: String, private val command: String)
+        private val clusterId: ClusterId,
+        private val logType: LogType<T>,
+        private val headerParser: HeaderParser = LogHeaderParser(),
+        private val directory: String = ".")
     : LogPublishable<T>, AutoCloseable, Disposable {
-
+    companion object {
+        val log by logger()
+    }
     var process: Process? = null
     var isCallProcess = false
     val observable: Observable<T> = Observable.create<T> { e ->
@@ -21,13 +27,14 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
         try {
             process = executeArcCli()
             process!!.inputStream.bufferedReader().forEachLine { line ->
-                println(line + this)
                 // header 인가?
+                log.debug("{}", line)
                 if (headerParser.isHeader(line)) {
                     header = headerParser.parse(line)
                     currentDateTime = header.current
                 }
-                val log = parser.parse(currentDateTime, line)
+                val log = logType.parser.parse(currentDateTime, line)
+                // TODO 미접속 오류 : "Connect to cluster: Request timeout"
                 // 알 수 없는 로그인가?
                 if (log.isUnknown()) {
                     return@forEachLine
@@ -63,7 +70,7 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
                                    will be escaped in the form of "\n\r\a...." or "\x<hex-number>"
      */
     private fun executeArcCli(): Process {
-        val result = ProcessBuilder("arc-cli-admin", "-t", command, "-i", "1", "-z", zkAddress, "-c", cluster)
+        val result = ProcessBuilder("arc-cli-admin", "-t", logType.command, "-i", "1", "-z", clusterId.zkAddress, "-c", clusterId.cluster)
                 .directory(Paths.get(directory).toFile())
                 .redirectErrorStream(true)
                 .start()

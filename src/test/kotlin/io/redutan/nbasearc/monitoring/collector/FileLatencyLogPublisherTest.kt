@@ -3,8 +3,7 @@ package io.redutan.nbasearc.monitoring.collector
 import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.LatencyParser
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -13,6 +12,7 @@ import kotlin.test.assertTrue
 /**
  * @author myeongju.jung
  */
+@Ignore
 class FileLatencyLogPublisherTest {
     val parser = LatencyParser()
     val headerParser = LogHeaderParser()
@@ -24,6 +24,7 @@ class FileLatencyLogPublisherTest {
         val to = TestObserver.create<Latency>()
         // when
         val latencies = logPublisher.observe()
+                .doOnNext { println(it) }
         latencies.subscribe(to)
         // then
         to.assertComplete()

@@ -3,6 +3,7 @@ package io.redutan.nbasearc.monitoring.collector
 import io.reactivex.Observable
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
 
 private const val FILE_NAME = "latency-each-1seconds.txt"
@@ -34,6 +35,7 @@ class FileLatencyLogPublisher(private val parser: Parser<Latency>,
                     }
                     e.onNext(log)   // 방출
                     currentDateTime = currentDateTime.plusSeconds(1)
+                    TimeUnit.SECONDS.sleep(1)
                 } catch (t: Throwable) {
                     e.onError(t)
                 }

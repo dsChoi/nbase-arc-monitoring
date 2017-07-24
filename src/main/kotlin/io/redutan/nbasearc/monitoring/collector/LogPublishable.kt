@@ -12,7 +12,7 @@ interface LogPublishable<T: NbaseArcLog> {
 }
 
 /**
- * nbase-arc 로그 모델 : Marked interface
+ * nbase-arc 로그 모델
  */
 interface NbaseArcLog {
     val loggedAt: LocalDateTime
