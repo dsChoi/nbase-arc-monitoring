@@ -68,6 +68,10 @@ function scrollToBottom() {
 	$("html, body").animate({scrollTop: $(document).height() - $(window).height()});
 }
 
+function stopScrollToBottom() {
+	$("html, body").stop().clearQueue();
+}
+
 function start() {
 	if (currentMenu === "latency") {
 		if (!latency.isOpen()) {
@@ -145,6 +149,17 @@ function callLatency() {
 		_socket.close();
 	}
 
+	function toCssClass(number, className) {
+		return number > 0 ? className : "";
+	}
+
+	function toNumberString(number) {
+		if (number === 0) {
+			return "";
+		}
+		return $.number(number);
+	}
+
 	var rowCount = 1;
 
 	function received(message) {
@@ -153,35 +168,37 @@ function callLatency() {
 		$latencyRows.append(
 			"<tr>" +
 			"    <td class='text-center'>" + timeToString(latency.loggedAt.time) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under1ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under2ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under4ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under8ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under16ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under32ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under64ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under128ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under256ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under512ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.under1024ms) + "</td>\n" +
-			"    <td class='text-right'>" + $.number(latency.over1024ms) + "</td>\n" +
-			"</tr>");
+			"    <td class='text-right " + toCssClass(latency.under1ms, "text-success") + "'><strong>" + toNumberString(latency.under1ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under2ms, "text-success") + "'><strong>" + toNumberString(latency.under2ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under4ms, "text-success") + "'><strong>" + toNumberString(latency.under4ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under8ms, "text-muted") + "'><strong>" + toNumberString(latency.under8ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under16ms, "text-muted") + "'><strong>" + toNumberString(latency.under16ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under32ms, "text-muted") + "'><strong>" + toNumberString(latency.under32ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under64ms, "text-warning") + "'><strong>" + toNumberString(latency.under64ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under128ms, "text-warning") + "'><strong>" + toNumberString(latency.under128ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under256ms, "text-warning") + "'><strong>" + toNumberString(latency.under256ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under512ms, "text-danger") + "'><strong>" + toNumberString(latency.under512ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.under1024ms, "text-danger") + "'><strong>" + toNumberString(latency.under1024ms) + "</strong></td>\n" +
+			"    <td class='text-right " + toCssClass(latency.over1024ms, "text-danger") + "'><strong>" + toNumberString(latency.over1024ms) + "</strong></td>\n" +
+			"</tr>"
+		);
+
 		if (rowCount % 20 === 0) {
 			$latencyRows.append(
 				"<tr>\n" +
 				"    <th class='text-center'>Datetime</th>\n" +
-				"    <th class='text-right'>1ms</th>\n" +
-				"    <th class='text-right'>2ms</th>\n" +
-				"    <th class='text-right'>4ms</th>\n" +
-				"    <th class='text-right'>8ms</th>\n" +
-				"    <th class='text-right'>16ms</th>\n" +
-				"    <th class='text-right'>32ms</th>\n" +
-				"    <th class='text-right'>64ms</th>\n" +
-				"    <th class='text-right'>128ms</th>\n" +
-				"    <th class='text-right'>256ms</th>\n" +
-				"    <th class='text-right'>512ms</th>\n" +
-				"    <th class='text-right'>1024ms</th>\n" +
-				"    <th class='text-right'>Over 1024ms</th>\n" +
+				"    <th class='bg-success text-right text-white'>1ms</th>\n" +
+				"    <th class='bg-success text-right text-white'>2ms</th>\n" +
+				"    <th class='bg-success text-right text-white'>4ms</th>\n" +
+				"    <th class='bg-faded text-right text-muted'>8ms</th>\n" +
+				"    <th class='bg-faded text-right text-muted'>16ms</th>\n" +
+				"    <th class='bg-faded text-right text-muted'>32ms</th>\n" +
+				"    <th class='bg-warning text-right text-white'>64ms</th>\n" +
+				"    <th class='bg-warning text-right text-white'>128ms</th>\n" +
+				"    <th class='bg-warning text-right text-white'>256ms</th>\n" +
+				"    <th class='bg-danger text-right text-white'>512ms</th>\n" +
+				"    <th class='bg-danger text-right text-white'>1024ms</th>\n" +
+				"    <th class='bg-danger text-right text-white'>Over 1024ms</th>\n" +
 				"</tr>"
 			);
 			rowCount = 0;
