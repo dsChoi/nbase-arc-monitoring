@@ -65,7 +65,7 @@ function timeToString(time) {
 }
 
 function scrollToBottom() {
-	$("html, body").animate({scrollTop: $(document).height() - $(window).height()});
+	$("html, body").animate({scrollTop: $(document).height() - $(window).height()}, 10);
 }
 
 function stopScrollToBottom() {
@@ -186,7 +186,7 @@ function callLatency() {
 		if (rowCount % 20 === 0) {
 			$latencyRows.append(
 				"<tr>\n" +
-				"    <th class='text-center'>Datetime</th>\n" +
+				"    <th class='text-center'>Time</th>\n" +
 				"    <th class='bg-success text-right text-white'>1ms</th>\n" +
 				"    <th class='bg-success text-right text-white'>2ms</th>\n" +
 				"    <th class='bg-success text-right text-white'>4ms</th>\n" +
