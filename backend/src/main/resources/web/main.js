@@ -3,13 +3,14 @@ var latency = null;
 var stat = null;
 var currentMenu;
 
+// noinspection JSUnusedGlobalSymbols
 function isLogin() {
 	return session !== null;
 }
 
 function login() {
-	$zkAddress = $("#zkAddress");
-	$cluster = $("#cluster");
+	var $zkAddress = $("#zkAddress");
+	var $cluster = $("#cluster");
 
 	if ($zkAddress.val() === "") {
 		alert("Please insert zookeepr address");
@@ -30,14 +31,15 @@ function login() {
 
 function displayMenu() {
 	$("#login").hide();
-	$("#menu").show();
-	$('#menu').find('a[href="#latency"]').tab('show').click()
+	var $menu = $("#menu");
+	$menu.show();
+	$menu.find('a[href="#latency"]').tab('show').click()
 }
 
 function displayLatency() {
 	currentMenu = "latency";
 	if (latency === null) {
-		latency = new callLatency();
+		latency = new CallLatency();
 	}
 	if (latency.isOpen()) {
 		setStop();
@@ -68,6 +70,7 @@ function scrollToBottom() {
 	$("html, body").animate({scrollTop: $(document).height() - $(window).height()}, 10);
 }
 
+// noinspection JSUnusedGlobalSymbols
 function stopScrollToBottom() {
 	$("html, body").stop().clearQueue();
 }
@@ -75,7 +78,7 @@ function stopScrollToBottom() {
 function start() {
 	if (currentMenu === "latency") {
 		if (!latency.isOpen()) {
-			latency = callLatency();
+			latency = CallLatency();
 		}
 	} else if (currentMenu === "stat") {
 		if (!stat.isOpen()) {
@@ -112,7 +115,7 @@ function setStart() {
 	$("#btnStop").hide();
 }
 
-function callLatency() {
+function CallLatency() {
 	var _socket = null;
 	var _isOpen = false;
 
@@ -134,7 +137,7 @@ function callLatency() {
 		console.log("Latency disconnected");
 		_isOpen = false;
 		setStart();
-		// setTimeout(callLatency, 5000);
+		// setTimeout(CallLatency, 5000);
 	};
 
 	_socket.onmessage = function (event) {
@@ -209,7 +212,7 @@ function callLatency() {
 
 	return {
 		close: close,
-		isOpen: isOpen,
+		isOpen: isOpen
 	}
 }
 
