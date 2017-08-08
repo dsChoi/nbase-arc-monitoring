@@ -1,7 +1,7 @@
 package react
 
-import kotlin.properties.*
-import kotlin.reflect.*
+import kotlin.properties.ReadOnlyProperty
+import kotlin.properties.ReadWriteProperty
 
 interface ReactComponentLifecycleListener {
     fun reactComponentWillUpdate()
