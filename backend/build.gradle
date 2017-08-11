@@ -42,5 +42,6 @@ kotlin {
 }
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 mainClassName = 'org.jetbrains.ktor.netty.DevelopmentHost'
