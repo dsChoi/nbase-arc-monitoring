@@ -4,9 +4,170 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/tui.chart-2.9.4.css"/>
     <title>Dashboard</title>
 </head>
 <body>
+<div id="chart-area"></div>
+<script type='text/javascript' src='js/code-snippet-1.0.8.js'></script>
+<script type='text/javascript' src='js/raphael-v2.2.0b.js'></script>
+<script type='text/javascript' src='js/tui.chart-2.9.4.js'></script>
+<script type="text/javascript">
 
+var container = document.getElementById('chart-area');
+var categories = tui.util.map(tui.util.range(60 * 5), function() {
+    return "";
+});
+var emptyDatas = function() {
+	return tui.util.map(tui.util.range(60 * 5), function() {
+		return 0;
+	})
+};
+var data = {
+    categories: categories,
+    series: [
+        {
+            name: '256~ms',
+            data: emptyDatas()
+        },
+        {
+            name: '64~256ms',
+            data: emptyDatas()
+        },
+        {
+            name: '8~32ms',
+            data: emptyDatas()
+        },
+        {
+            name: '1~4ms',
+            data: emptyDatas()
+        }
+    ]
+};
+var options = {
+    chart: {
+        width: 1024,
+        height: 768,
+        title: 'Latency',
+        format: '1,000'
+    },
+    yAxis: {
+        title: 'Count'
+    },
+    xAxis: {
+        title: 'Time',
+		tickInterval: 'auto'
+    },
+    series: {
+        stackType: 'normal',
+        showDot: true,
+        spline: true,
+        shifting: true
+    },
+    tooltip: {
+        grouped: true
+    }
+};
+var theme = {
+    series: {
+        colors: ['#66a89c', '#39706f', '#1b4151']
+    }
+};
+
+// For apply theme
+//	tui.chart.registerTheme('myTheme', theme);
+//	options.theme = 'myTheme';
+
+var chart = tui.chart.areaChart(container, data, options);
+
+function zeroFill(number) {
+	var filledNumber;
+
+	if (number < 10) {
+		filledNumber = '0' + number;
+	} else {
+		filledNumber = number;
+	}
+
+	return filledNumber;
+}
+
+function adjustTime(time, addTime) {
+	addTime = addTime || 60;
+	if (time < 0) {
+		time += addTime;
+	}
+	return time;
+}
+
+function makeDate(hour, minute, second) {
+	return zeroFill(adjustTime(hour, 24)) + ':' + zeroFill(adjustTime(minute)) + ':' + zeroFill(adjustTime(second));
+}
+
+chart.on('load', function() {
+    var latency = new CallLatency(function (data) {
+    	console.log(data);
+		var latency = JSON.parse(data);
+
+		var loggedTime = latency.loggedAt.time;
+		var sumUnder4ms = latency.under1ms + latency.under2ms + latency.under4ms;
+		var sumOver4Under32ms = latency.under8ms + latency.under16ms + latency.under32ms;
+		var sumOver32Under256ms = latency.under64ms + latency.under128ms + latency.under256ms;
+		var sumOver256ms = latency.under512ms + latency.under1024ms + latency.over1024ms;
+
+        chart.addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second),
+            [sumOver256ms, sumOver32Under256ms, sumOver4Under32ms, sumUnder4ms]);
+	});
+});
+
+/** for Test */
+var session = {
+	zkAddress: "pnbasearc.cloud.toast.com:2181",
+	cluster: "ticketlink_cluster_1"
+};
+
+function CallLatency(received) {
+	var _socket = null;
+	var _isOpen = false;
+
+	console.log("Open Latency " + session.zkAddress + " " + session.cluster);
+	_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+	_socket.onerror = function () {
+		console.log("Latency socket error");
+	};
+
+	_socket.onopen = function () {
+		console.log("Latency Connected");
+		_isOpen = true;
+//		setStop();
+		_socket.send("/latencies")
+	};
+
+	_socket.onclose = function () {
+		console.log("Latency disconnected");
+		_isOpen = false;
+//		setStart();
+		// setTimeout(CallLatency, 5000);
+	};
+
+	_socket.onmessage = function (event) {
+		received(event.data);
+	};
+
+	function isOpen() {
+		return _isOpen;
+	}
+
+	function close() {
+		_socket.close();
+	}
+
+	return {
+		close: close,
+		isOpen: isOpen
+	}
+}
+</script>
 </body>
 </html>
