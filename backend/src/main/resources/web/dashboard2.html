@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="bootstrap.min.css"/>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <title>Dashboard</title>
+</head>
+<body>
+<canvas id="latencyCanvas" width="400" height="400"></canvas>
+<script type='text/javascript' src='js/Chart-2.6.0.min.js'></script>
+<script type="text/javascript">
+	window.chartColors = {
+		red: 'rgb(255, 99, 132)',
+		orange: 'rgb(255, 159, 64)',
+		yellow: 'rgb(255, 205, 86)',
+		green: 'rgb(75, 192, 192)',
+		blue: 'rgb(54, 162, 235)',
+		purple: 'rgb(153, 102, 255)',
+		grey: 'rgb(201, 203, 207)'
+	};
+
+	var range = function(count, func) {
+		var results = [];
+		for(var i = 0; i < count; i++) {
+		    results.push(func());
+        }
+        return results;
+    };
+
+	var times = range(60 * 5, function() {
+		return "";
+    });
+
+	var emptyDatas = function () {
+		return range(60 * 5, function() {
+			return 0;
+        })
+    };
+
+	var config = {
+		type: 'line',
+		data: {
+			labels: times,
+			datasets: [{
+				label: '~4ms',
+				data: emptyDatas(),
+				backgroundColor: window.chartColors.green,
+				borderColor: window.chartColors.green
+			}, {
+				label: '5~32ms',
+				data: emptyDatas(),
+				backgroundColor: window.chartColors.yellow,
+				borderColor: window.chartColors.yellow
+            }, {
+				label: '33~256ms',
+				data: emptyDatas(),
+				backgroundColor: window.chartColors.orange,
+				borderColor: window.chartColors.orange
+			}, {
+				label: '257~ms',
+				data: emptyDatas(),
+				backgroundColor: window.chartColors.red,
+				borderColor: window.chartColors.red
+			}]
+		},
+		options: {
+			responsive: true,
+			title:{
+				display:true,
+				text:"Latency"
+			},
+			tooltips: {
+				mode: 'x'
+			},
+			hover: {
+				mode: 'x'
+			},
+			scales: {
+				xAxes: [{
+					scaleLabel: {
+						display: true,
+						labelString: 'Time'
+					}
+				}],
+				yAxes: [{
+					stacked: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Count'
+					}
+				}]
+			}
+		}
+	};
+
+	function CallLatency(received) {
+		var _socket = null;
+		var _isOpen = false;
+
+		console.log("Open Latency " + session.zkAddress + " " + session.cluster);
+		_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+		_socket.onerror = function () {
+			console.log("Latency socket error");
+		};
+
+		_socket.onopen = function () {
+			console.log("Latency Connected");
+			_isOpen = true;
+//		setStop();
+			_socket.send("/latencies")
+		};
+
+		_socket.onclose = function () {
+			console.log("Latency disconnected");
+			_isOpen = false;
+//		setStart();
+			// setTimeout(CallLatency, 5000);
+		};
+
+		_socket.onmessage = function (event) {
+			received(event.data);
+		};
+
+		function isOpen() {
+			return _isOpen;
+		}
+
+		function close() {
+			_socket.close();
+		}
+
+		return {
+			close: close,
+			isOpen: isOpen
+		}
+	}
+
+	function zeroFill(number) {
+		var filledNumber;
+
+		if (number < 10) {
+			filledNumber = '0' + number;
+		} else {
+			filledNumber = number;
+		}
+
+		return filledNumber;
+	}
+
+	function adjustTime(time, addTime) {
+		addTime = addTime || 60;
+		if (time < 0) {
+			time += addTime;
+		}
+		return time;
+	}
+
+	function makeDate(hour, minute, second) {
+		return zeroFill(adjustTime(hour, 24)) + ':' + zeroFill(adjustTime(minute)) + ':' + zeroFill(adjustTime(second));
+	}
+
+	/** for Test */
+	var session = {
+		zkAddress: "pnbasearc.cloud.toast.com:2181",
+		cluster: "ticketlink_cluster_1"
+	};
+
+	window.onload = function() {
+		var ctx = document.getElementById("latencyCanvas").getContext("2d");
+		var latencyChart = new Chart(ctx, config);
+
+		var addData = function (time, datas) {
+//			latencyChart.data.labels.shift();
+//			latencyChart.data.datasets.forEach(function(dataset) {
+//				dataset.data.shift();
+//		    });
+			latencyChart.data.labels.push(time);
+			latencyChart.data.datasets.forEach(function(dataset, idx) {
+				dataset.data.push(datas[idx]);
+			});
+			latencyChart.update();
+		};
+		var latency = new CallLatency(function (data) {
+			var latency = JSON.parse(data);
+
+			var loggedTime = latency.loggedAt.time;
+			var sumUnder4ms = latency.under1ms + latency.under2ms + latency.under4ms;
+			var sumOver4Under32ms = latency.under8ms + latency.under16ms + latency.under32ms;
+			var sumOver32Under256ms = latency.under64ms + latency.under128ms + latency.under256ms;
+			var sumOver256ms = latency.under512ms + latency.under1024ms + latency.over1024ms;
+
+			addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second),
+				[sumUnder4ms, sumOver4Under32ms , sumOver32Under256ms, sumOver256ms]);
+		});
+	};
+</script>
+</body>
+</html>

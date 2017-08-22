@@ -15,11 +15,13 @@
 <script type="text/javascript">
 
 var container = document.getElementById('chart-area');
-var categories = tui.util.map(tui.util.range(60 * 5), function() {
+
+var X_MINUTES = 5;
+var categories = tui.util.map(tui.util.range(60 * X_MINUTES), function() {
     return "";
 });
 var emptyDatas = function() {
-	return tui.util.map(tui.util.range(60 * 5), function() {
+	return tui.util.map(tui.util.range(60 * X_MINUTES), function() {
 		return 0;
 	})
 };
@@ -27,19 +29,19 @@ var data = {
     categories: categories,
     series: [
         {
-            name: '256~ms',
+            name: '257~ms',
             data: emptyDatas()
         },
         {
-            name: '64~256ms',
+            name: '33~256ms',
             data: emptyDatas()
         },
         {
-            name: '8~32ms',
+            name: '5~32ms',
             data: emptyDatas()
         },
         {
-            name: '1~4ms',
+            name: '~4ms',
             data: emptyDatas()
         }
     ]
