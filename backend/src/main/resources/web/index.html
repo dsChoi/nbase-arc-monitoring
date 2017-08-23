@@ -1,8 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <title>nBase-ARC Monitoring</title>
 </head>
 <body>
 <div class="container">
@@ -10,14 +19,8 @@
         <div class="container-fluid">
             <div class="collapse navbar-collapse">
                 <ul id="tabs" class="nav nav-pills nav-justified">
-                    <li role="presentation"><a href="#latency" aria-controls="latency" role="tab" data-toggle="tab"
-                                               onclick="displayLatency(); return true;">Latency</a></li>
-                    <li role="presentation"><a href="#stat" aria-controls="stat" role="tab" data-toggle="tab" onclick="displayStat(); return true;">Stat
-                    </a></li>
-                    <li class="text-center">
-                        <button id="btnStart" type="button" class="btn btn-success" onclick="start();" style="display: none;">Start</button>
-                        <button id="btnStop" type="button" class="btn btn-warning" onclick="stop();" style="display: none;">Stop</button>
-                    </li>
+                    <li role="presentation"><a href="#dashboard" aria-controls="dashboard" role="tab" data-toggle="tab"
+                                               onclick="displayDashboard(); return true;">Dashboard</a></li>
                 </ul>
             </div>
         </div>
@@ -45,62 +48,414 @@
     </div>
     <!-- End : Login -->
     <div class="tab-content" style="margin-top: 50px;">
-        <!-- Start : Latency -->
-        <div role="tabpanel" class="tab-pane" id="latency">
-            <h1>Latency</h1>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th class='text-center'>Time</th>
-                        <th class='bg-success text-right text-white'>1ms</th>
-                        <th class='bg-success text-right text-white'>2ms</th>
-                        <th class='bg-success text-right text-white'>4ms</th>
-                        <th class='bg-faded text-right text-muted'>8ms</th>
-                        <th class='bg-faded text-right text-muted'>16ms</th>
-                        <th class='bg-faded text-right text-muted'>32ms</th>
-                        <th class='bg-warning text-right text-white'>64ms</th>
-                        <th class='bg-warning text-right text-white'>128ms</th>
-                        <th class='bg-warning text-right text-white'>256ms</th>
-                        <th class='bg-danger text-right text-white'>512ms</th>
-                        <th class='bg-danger text-right text-white'>1024ms</th>
-                        <th class='bg-danger text-right text-white'>Over 1024ms</th>
-                    </tr>
-                    </thead>
-                    <tbody id="latencyRows">
-                    </tbody>
-                </table>
+        <!-- Start : Dashboard -->
+        <div role="tabpanel" class="tab-pane" id="dashboard">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="latencyCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="opsCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="connectionCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="memCanvas" width="400" height="300"></canvas>
+                </div>
             </div>
         </div>
-        <!-- End : Latency -->
-        <div role="tabpanel" class="tab-pane" id="stat">
-            <h1>Stat</h1>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th class='text-center'>Time</th>
-                        <th class='text-right'>redis</th>
-                        <th class='text-right'>PG</th>
-                        <th class='text-right'>connection</th>
-                        <th class='text-right'>mem</th>
-                        <th class='text-right'>OPS</th>
-                        <th class='text-right'>hits</th>
-                        <th class='text-right'>misses</th>
-                        <th class='text-right'>keys</th>
-                        <th class='text-right'>expires</th>
-                    </tr>
-                    </thead>
-                    <tbody id="statRows">
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <!-- End : Dashboard -->
     </div>
 </div>
-<script src="jquery-3.2.1.min.js"></script>
-<script src="bootstrap.min.js"></script>
-<script src="jquery.number.min.js"></script>
-<script src="main.js"></script>
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script type='text/javascript' src='js/Chart-2.6.0.min.js'></script>
+<script type="text/javascript">
+var session = {
+    zkAddress: null,
+    cluster: null
+};
+
+function login() {
+    var $zkAddress = $("#zkAddress");
+    var $cluster = $("#cluster");
+
+    if ($zkAddress.val() === "") {
+        alert("Please insert zookeepr address");
+        $zkAddress.focus();
+        return;
+    }
+    if ($cluster.val() === "") {
+        alert("Please insert cluster name");
+        $cluster.focus();
+        return;
+    }
+    session = {
+        zkAddress: $zkAddress.val(),
+        cluster: $cluster.val()
+    };
+	displayMenu();
+}
+
+function displayMenu() {
+    $("#login").hide();
+    var $menu = $("#menu");
+    $menu.show();
+    $menu.find('a[href="#dashboard"]').tab('show').click()
+}
+
+function displayDashboard() {
+	startDashboard();
+}
+</script>
+<script type="text/javascript">
+	window.chartColors = {
+		red: 'rgb(255, 99, 132)',
+		orange: 'rgb(255, 159, 64)',
+		yellow: 'rgb(255, 205, 86)',
+		green: 'rgb(75, 192, 192)',
+		blue: 'rgb(54, 162, 235)',
+		purple: 'rgb(153, 102, 255)',
+		grey: 'rgb(201, 203, 207)'
+	};
+
+	var range = function (count, func) {
+		var results = [];
+		for (var i = 0; i < count; i++) {
+			results.push(func());
+		}
+		return results;
+	};
+
+	var DISPLAY_MINUTES = 5;
+	var times = range(60 * DISPLAY_MINUTES, function () {
+		return "";
+	});
+
+	var emptyDatas = function () {
+		return range(60 * DISPLAY_MINUTES, function () {
+			return null;
+		})
+	};
+
+	function zeroFill(number) {
+		var filledNumber;
+
+		if (number < 10) {
+			filledNumber = '0' + number;
+		} else {
+			filledNumber = number;
+		}
+
+		return filledNumber;
+	}
+
+	function adjustTime(time, addTime) {
+		addTime = addTime || 60;
+		if (time < 0) {
+			time += addTime;
+		}
+		return time;
+	}
+
+	function makeDate(hour, minute, second) {
+		return zeroFill(adjustTime(hour, 24)) + ':' + zeroFill(adjustTime(minute)) + ':' + zeroFill(adjustTime(second));
+	}
+
+	var showLatencyChart = function () {
+		var ctx = document.getElementById("latencyCanvas").getContext("2d");
+		var latencyChart = new Chart(ctx, {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: '~4 ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.green,
+					borderColor: window.chartColors.green
+				}, {
+					label: '5~32 ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.yellow,
+					borderColor: window.chartColors.yellow
+				}, {
+					label: '33~256 ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.orange,
+					borderColor: window.chartColors.orange
+				}, {
+					label: '257~ ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.red,
+					borderColor: window.chartColors.red
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Latency"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: true,
+						scaleLabel: {
+							display: true
+						}
+					}]
+				}
+			}
+		});
+
+		function callLatency(received) {
+			var _socket = null;
+
+			console.log("Open Latency " + session.zkAddress + " " + session.cluster);
+			_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+			_socket.onerror = function () {
+				console.log("Latency socket error");
+			};
+
+			_socket.onopen = function () {
+				console.log("Latency Connected");
+				_socket.send("/latencies")
+			};
+
+			_socket.onclose = function () {
+				console.log("Latency disconnected");
+			};
+
+			_socket.onmessage = function (event) {
+				received(event.data);
+			};
+		}
+
+		callLatency(function (data) {
+			var latency = JSON.parse(data);
+
+			var loggedTime = latency.loggedAt.time;
+			var sumUnder4ms = latency.under1ms + latency.under2ms + latency.under4ms;
+			var sumOver4Under32ms = latency.under8ms + latency.under16ms + latency.under32ms;
+			var sumOver32Under256ms = latency.under64ms + latency.under128ms + latency.under256ms;
+			var sumOver256ms = latency.under512ms + latency.under1024ms + latency.over1024ms;
+
+			var addData = function (time, datas) {
+				latencyChart.data.labels.shift();
+				latencyChart.data.datasets.forEach(function (dataset) {
+					dataset.data.shift();
+				});
+				latencyChart.data.labels.push(time);
+				latencyChart.data.datasets.forEach(function (dataset, idx) {
+					dataset.data.push(datas[idx]);
+				});
+				latencyChart.update();
+			};
+
+			addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second),
+				[sumUnder4ms, sumOver4Under32ms, sumOver32Under256ms, sumOver256ms]);
+		});
+	};
+
+	function showStatCharts() {
+		var opsChart = new Chart(document.getElementById("opsCanvas").getContext("2d"), {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: "OPS",
+					fill: true,
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.purple,
+					borderColor: window.chartColors.purple
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "OPS"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: false,
+						scaleLabel: {
+							display: true
+						}
+					}]
+				}
+			}
+		});
+
+		var connectionChart = new Chart(document.getElementById("connectionCanvas").getContext("2d"), {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: "Connection",
+					fill: true,
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.blue,
+					borderColor: window.chartColors.blue
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Connection"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: false,
+						scaleLabel: {
+							display: true
+						}
+					}]
+				}
+			}
+		});
+
+		var memChart = new Chart(document.getElementById("memCanvas").getContext("2d"), {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: "Memory",
+					fill: true,
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.yellow,
+					borderColor: window.chartColors.yellow
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Memory"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: false,
+						scaleLabel: {
+							display: true,
+							labelString: "GB"
+						}
+					}]
+				}
+			}
+		});
+
+		function callStat(received) {
+			var _socket = null;
+
+			console.log("Open Stat " + session.zkAddress + " " + session.cluster);
+			_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+			_socket.onerror = function () {
+				console.log("Stat socket error");
+			};
+
+			_socket.onopen = function () {
+				console.log("Stat Connected");
+				_socket.send("/stats")
+			};
+
+			_socket.onclose = function () {
+				console.log("Stat disconnected");
+			};
+
+			_socket.onmessage = function (event) {
+				received(event.data);
+			};
+		}
+
+		callStat(function (data) {
+			var stat = JSON.parse(data);
+
+			var loggedTime = stat.loggedAt.time;
+			var ops = stat.ops;
+			var connection = stat.connection;
+			var mem = stat.mem;
+
+			function updateChart(chart, time, value) {
+				chart.data.labels.shift();
+				chart.data.datasets[0].data.shift();
+				chart.data.labels.push(time);
+				chart.data.datasets[0].data.push(value);
+				chart.update();
+			}
+
+			function addData(time, ops, connection, mem) {
+				updateChart(opsChart, time, ops);
+				updateChart(connectionChart, time, connection);
+				updateChart(memChart, time, mem.value);
+			}
+
+			addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second), ops, connection, mem);
+		});
+	}
+
+	var startDashboard = function () {
+		// global options
+		Chart.defaults.global.elements.point.radius = 0;
+
+		showLatencyChart();
+		showStatCharts();
+	};
+</script>
 </body>
 </html>

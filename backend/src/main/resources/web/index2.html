@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-default navbar-fixed-top" id="menu" style="display:none;">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse">
+                <ul id="tabs" class="nav nav-pills nav-justified">
+                    <li role="presentation"><a href="#latency" aria-controls="latency" role="tab" data-toggle="tab"
+                                               onclick="displayLatency(); return true;">Latency</a></li>
+                    <li role="presentation"><a href="#stat" aria-controls="stat" role="tab" data-toggle="tab" onclick="displayStat(); return true;">Stat
+                    </a></li>
+                    <li class="text-center">
+                        <button id="btnStart" type="button" class="btn btn-success" onclick="start();" style="display: none;">Start</button>
+                        <button id="btnStop" type="button" class="btn btn-warning" onclick="stop();" style="display: none;">Stop</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Start : Login -->
+    <div id="login" class="jumbotron">
+        <h1>NbaseArc Monitoring</h1>
+        <p>Welcome NbaseArc Monitoring!!</p>
+        <form onsubmit="login(); return false;">
+            <div class="form-group">
+                <label for="zkAddress">NabseArc zookeeper address</label>
+                <input class="form-control" id="zkAddress" placeholder="localhost:2181">
+            </div>
+            <div class="form-group">
+                <label for="cluster">NbaseArc cluster name</label>
+                <input class="form-control" id="cluster" placeholder="default">
+            </div>
+            <!--<div class="checkbox">-->
+            <!--<label>-->
+            <!--<input type="checkbox"> Check me out-->
+            <!--</label>-->
+            <!--</div>-->
+            <button class="btn btn-primary btn-lg">Login</button>
+        </form>
+    </div>
+    <!-- End : Login -->
+    <div class="tab-content" style="margin-top: 50px;">
+        <!-- Start : Latency -->
+        <div role="tabpanel" class="tab-pane" id="latency">
+            <h1>Latency</h1>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th class='text-center'>Time</th>
+                        <th class='bg-success text-right text-white'>1ms</th>
+                        <th class='bg-success text-right text-white'>2ms</th>
+                        <th class='bg-success text-right text-white'>4ms</th>
+                        <th class='bg-faded text-right text-muted'>8ms</th>
+                        <th class='bg-faded text-right text-muted'>16ms</th>
+                        <th class='bg-faded text-right text-muted'>32ms</th>
+                        <th class='bg-warning text-right text-white'>64ms</th>
+                        <th class='bg-warning text-right text-white'>128ms</th>
+                        <th class='bg-warning text-right text-white'>256ms</th>
+                        <th class='bg-danger text-right text-white'>512ms</th>
+                        <th class='bg-danger text-right text-white'>1024ms</th>
+                        <th class='bg-danger text-right text-white'>Over 1024ms</th>
+                    </tr>
+                    </thead>
+                    <tbody id="latencyRows">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- End : Latency -->
+        <div role="tabpanel" class="tab-pane" id="stat">
+            <h1>Stat</h1>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th class='text-center'>Time</th>
+                        <th class='text-right'>redis</th>
+                        <th class='text-right'>PG</th>
+                        <th class='text-right'>connection</th>
+                        <th class='text-right'>mem</th>
+                        <th class='text-right'>OPS</th>
+                        <th class='text-right'>hits</th>
+                        <th class='text-right'>misses</th>
+                        <th class='text-right'>keys</th>
+                        <th class='text-right'>expires</th>
+                    </tr>
+                    </thead>
+                    <tbody id="statRows">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="jquery.number.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
