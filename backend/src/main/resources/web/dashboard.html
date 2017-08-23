@@ -4,172 +4,386 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="bootstrap.min.css"/>
-    <link rel="stylesheet" href="css/tui.chart-2.9.4.css"/>
-    <title>Dashboard</title>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <title>nBase-ARC Monitoring : Dashboard</title>
 </head>
 <body>
-<div id="chart-area"></div>
-<script type='text/javascript' src='js/code-snippet-1.0.8.js'></script>
-<script type='text/javascript' src='js/raphael-v2.2.0b.js'></script>
-<script type='text/javascript' src='js/tui.chart-2.9.4.js'></script>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6">
+            <canvas id="latencyCanvas" width="400" height="300"></canvas>
+        </div>
+        <div class="col-sm-6">
+            <canvas id="opsCanvas" width="400" height="300"></canvas>
+        </div>
+        <div class="col-sm-6">
+            <canvas id="connectionCanvas" width="400" height="300"></canvas>
+        </div>
+        <div class="col-sm-6">
+            <canvas id="memCanvas" width="400" height="300"></canvas>
+        </div>
+    </div>
+</div>
+<script type='text/javascript' src='js/Chart-2.6.0.min.js'></script>
 <script type="text/javascript">
+	window.chartColors = {
+		red: 'rgb(255, 99, 132)',
+		orange: 'rgb(255, 159, 64)',
+		yellow: 'rgb(255, 205, 86)',
+		green: 'rgb(75, 192, 192)',
+		blue: 'rgb(54, 162, 235)',
+		purple: 'rgb(153, 102, 255)',
+		grey: 'rgb(201, 203, 207)'
+	};
 
-var container = document.getElementById('chart-area');
+	var range = function (count, func) {
+		var results = [];
+		for (var i = 0; i < count; i++) {
+			results.push(func());
+		}
+		return results;
+	};
 
-var X_MINUTES = 5;
-var categories = tui.util.map(tui.util.range(60 * X_MINUTES), function() {
-    return "";
-});
-var emptyDatas = function() {
-	return tui.util.map(tui.util.range(60 * X_MINUTES), function() {
-		return 0;
-	})
-};
-var data = {
-    categories: categories,
-    series: [
-        {
-            name: '257~ms',
-            data: emptyDatas()
-        },
-        {
-            name: '33~256ms',
-            data: emptyDatas()
-        },
-        {
-            name: '5~32ms',
-            data: emptyDatas()
-        },
-        {
-            name: '~4ms',
-            data: emptyDatas()
-        }
-    ]
-};
-var options = {
-    chart: {
-        width: 1024,
-        height: 768,
-        title: 'Latency',
-        format: '1,000'
-    },
-    yAxis: {
-        title: 'Count'
-    },
-    xAxis: {
-        title: 'Time',
-		tickInterval: 'auto'
-    },
-    series: {
-        stackType: 'normal',
-        showDot: true,
-        spline: true,
-        shifting: true
-    },
-    tooltip: {
-        grouped: true
-    }
-};
-var theme = {
-    series: {
-        colors: ['#66a89c', '#39706f', '#1b4151']
-    }
-};
-
-// For apply theme
-//	tui.chart.registerTheme('myTheme', theme);
-//	options.theme = 'myTheme';
-
-var chart = tui.chart.areaChart(container, data, options);
-
-function zeroFill(number) {
-	var filledNumber;
-
-	if (number < 10) {
-		filledNumber = '0' + number;
-	} else {
-		filledNumber = number;
-	}
-
-	return filledNumber;
-}
-
-function adjustTime(time, addTime) {
-	addTime = addTime || 60;
-	if (time < 0) {
-		time += addTime;
-	}
-	return time;
-}
-
-function makeDate(hour, minute, second) {
-	return zeroFill(adjustTime(hour, 24)) + ':' + zeroFill(adjustTime(minute)) + ':' + zeroFill(adjustTime(second));
-}
-
-chart.on('load', function() {
-    var latency = new CallLatency(function (data) {
-    	console.log(data);
-		var latency = JSON.parse(data);
-
-		var loggedTime = latency.loggedAt.time;
-		var sumUnder4ms = latency.under1ms + latency.under2ms + latency.under4ms;
-		var sumOver4Under32ms = latency.under8ms + latency.under16ms + latency.under32ms;
-		var sumOver32Under256ms = latency.under64ms + latency.under128ms + latency.under256ms;
-		var sumOver256ms = latency.under512ms + latency.under1024ms + latency.over1024ms;
-
-        chart.addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second),
-            [sumOver256ms, sumOver32Under256ms, sumOver4Under32ms, sumUnder4ms]);
+	var DISPLAY_MINUTES = 5;
+	var times = range(60 * DISPLAY_MINUTES, function () {
+		return "";
 	});
-});
 
-/** for Test */
-var session = {
-	zkAddress: "pnbasearc.cloud.toast.com:2181",
-	cluster: "ticketlink_cluster_1"
-};
-
-function CallLatency(received) {
-	var _socket = null;
-	var _isOpen = false;
-
-	console.log("Open Latency " + session.zkAddress + " " + session.cluster);
-	_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
-
-	_socket.onerror = function () {
-		console.log("Latency socket error");
+	var emptyDatas = function () {
+		return range(60 * DISPLAY_MINUTES, function () {
+			return null;
+		})
 	};
 
-	_socket.onopen = function () {
-		console.log("Latency Connected");
-		_isOpen = true;
-//		setStop();
-		_socket.send("/latencies")
-	};
+	function zeroFill(number) {
+		var filledNumber;
 
-	_socket.onclose = function () {
-		console.log("Latency disconnected");
-		_isOpen = false;
-//		setStart();
-		// setTimeout(CallLatency, 5000);
-	};
+		if (number < 10) {
+			filledNumber = '0' + number;
+		} else {
+			filledNumber = number;
+		}
 
-	_socket.onmessage = function (event) {
-		received(event.data);
-	};
-
-	function isOpen() {
-		return _isOpen;
+		return filledNumber;
 	}
 
-	function close() {
-		_socket.close();
+	function adjustTime(time, addTime) {
+		addTime = addTime || 60;
+		if (time < 0) {
+			time += addTime;
+		}
+		return time;
 	}
 
-	return {
-		close: close,
-		isOpen: isOpen
+	function makeDate(hour, minute, second) {
+		return zeroFill(adjustTime(hour, 24)) + ':' + zeroFill(adjustTime(minute)) + ':' + zeroFill(adjustTime(second));
 	}
-}
+
+	var showLatencyChart = function () {
+		var ctx = document.getElementById("latencyCanvas").getContext("2d");
+		var latencyChart = new Chart(ctx, {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: '~4 ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.green,
+					borderColor: window.chartColors.green
+				}, {
+					label: '5~32 ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.yellow,
+					borderColor: window.chartColors.yellow
+				}, {
+					label: '33~256 ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.orange,
+					borderColor: window.chartColors.orange
+				}, {
+					label: '257~ ms',
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.red,
+					borderColor: window.chartColors.red
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Latency"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: true,
+						scaleLabel: {
+							display: true
+						}
+					}]
+				}
+			}
+		});
+
+		function callLatency(received) {
+			var _socket = null;
+
+			console.log("Open Latency " + session.zkAddress + " " + session.cluster);
+			_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+			_socket.onerror = function () {
+				console.log("Latency socket error");
+			};
+
+			_socket.onopen = function () {
+				console.log("Latency Connected");
+				_socket.send("/latencies")
+			};
+
+			_socket.onclose = function () {
+				console.log("Latency disconnected");
+			};
+
+			_socket.onmessage = function (event) {
+				received(event.data);
+			};
+		}
+
+		callLatency(function (data) {
+			var latency = JSON.parse(data);
+
+			var loggedTime = latency.loggedAt.time;
+			var sumUnder4ms = latency.under1ms + latency.under2ms + latency.under4ms;
+			var sumOver4Under32ms = latency.under8ms + latency.under16ms + latency.under32ms;
+			var sumOver32Under256ms = latency.under64ms + latency.under128ms + latency.under256ms;
+			var sumOver256ms = latency.under512ms + latency.under1024ms + latency.over1024ms;
+
+			var addData = function (time, datas) {
+				latencyChart.data.labels.shift();
+				latencyChart.data.datasets.forEach(function (dataset) {
+					dataset.data.shift();
+				});
+				latencyChart.data.labels.push(time);
+				latencyChart.data.datasets.forEach(function (dataset, idx) {
+					dataset.data.push(datas[idx]);
+				});
+				latencyChart.update();
+			};
+
+			addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second),
+				[sumUnder4ms, sumOver4Under32ms, sumOver32Under256ms, sumOver256ms]);
+		});
+	};
+
+	function showStatCharts() {
+		var opsChart = new Chart(document.getElementById("opsCanvas").getContext("2d"), {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: "OPS",
+					fill: true,
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.purple,
+					borderColor: window.chartColors.purple
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "OPS"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: false,
+						scaleLabel: {
+							display: true
+						}
+					}]
+				}
+			}
+		});
+
+		var connectionChart = new Chart(document.getElementById("connectionCanvas").getContext("2d"), {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: "Connection",
+					fill: true,
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.blue,
+					borderColor: window.chartColors.blue
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Connection"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: false,
+						scaleLabel: {
+							display: true
+						}
+					}]
+				}
+			}
+		});
+
+		var memChart = new Chart(document.getElementById("memCanvas").getContext("2d"), {
+			type: 'line',
+			data: {
+				labels: times,
+				datasets: [{
+					label: "Memory",
+					fill: true,
+					data: emptyDatas(),
+					backgroundColor: window.chartColors.yellow,
+					borderColor: window.chartColors.yellow
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Memory"
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false
+				},
+				hover: {
+					mode: 'index',
+					intersect: false
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true
+						}
+					}],
+					yAxes: [{
+						stacked: false,
+						scaleLabel: {
+							display: true,
+							labelString: "GB"
+						}
+					}]
+				}
+			}
+		});
+
+		function callStat(received) {
+			var _socket = null;
+
+			console.log("Open Stat " + session.zkAddress + " " + session.cluster);
+			_socket = new WebSocket("ws://" + window.location.host + "/logs?zkAddress=" + session.zkAddress + "&cluster=" + session.cluster);
+
+			_socket.onerror = function () {
+				console.log("Stat socket error");
+			};
+
+			_socket.onopen = function () {
+				console.log("Stat Connected");
+				_socket.send("/stats")
+			};
+
+			_socket.onclose = function () {
+				console.log("Stat disconnected");
+			};
+
+			_socket.onmessage = function (event) {
+				received(event.data);
+			};
+		}
+
+		callStat(function (data) {
+			var stat = JSON.parse(data);
+
+			var loggedTime = stat.loggedAt.time;
+			var ops = stat.ops;
+			var connection = stat.connection;
+			var mem = stat.mem;
+
+			function updateChart(chart, time, value) {
+				chart.data.labels.shift();
+				chart.data.datasets[0].data.shift();
+				chart.data.labels.push(time);
+				chart.data.datasets[0].data.push(value);
+				chart.update();
+			}
+
+			function addData(time, ops, connection, mem) {
+				updateChart(opsChart, time, ops);
+				updateChart(connectionChart, time, connection);
+				updateChart(memChart, time, mem.value);
+			}
+
+			addData(makeDate(loggedTime.hour, loggedTime.minute, loggedTime.second), ops, connection, mem);
+		});
+	}
+
+	/** for Test */
+	var session = {
+		zkAddress: "pnbasearc.cloud.toast.com:2181",
+		cluster: "ticketlink_cluster_1"
+	};
+
+	window.onload = function () {
+		// global options
+		Chart.defaults.global.elements.point.radius = 0;
+
+		showLatencyChart();
+		showStatCharts();
+	};
 </script>
 </body>
 </html>
