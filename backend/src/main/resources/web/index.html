@@ -14,8 +14,8 @@
     <title>nBase-ARC Monitoring</title>
 </head>
 <body>
-<div class="container">
-    <nav class="navbar navbar-default navbar-fixed-top" id="menu" style="display:none;">
+<div class="container-fluid">
+    <nav class="navbar navbar-default" id="menu" style="display:none;">
         <div class="container-fluid">
             <div class="collapse navbar-collapse">
                 <ul id="tabs" class="nav nav-pills nav-justified">
@@ -52,16 +52,16 @@
         <div role="tabpanel" class="tab-pane" id="dashboard">
             <div class="row">
                 <div class="col-md-6">
-                    <canvas id="latencyCanvas" width="400" height="300"></canvas>
+                    <canvas id="latencyCanvas" width="400" height="250"></canvas>
                 </div>
                 <div class="col-md-6">
-                    <canvas id="opsCanvas" width="400" height="300"></canvas>
+                    <canvas id="opsCanvas" width="400" height="250"></canvas>
                 </div>
                 <div class="col-md-6">
-                    <canvas id="connectionCanvas" width="400" height="300"></canvas>
+                    <canvas id="connectionCanvas" width="400" height="250"></canvas>
                 </div>
                 <div class="col-md-6">
-                    <canvas id="memCanvas" width="400" height="300"></canvas>
+                    <canvas id="memCanvas" width="400" height="250"></canvas>
                 </div>
             </div>
         </div>
@@ -129,9 +129,11 @@ function displayDashboard() {
 	};
 
 	var DISPLAY_MINUTES = 5;
-	var times = range(60 * DISPLAY_MINUTES, function () {
-		return "";
-	});
+	var times = function() {
+		return range(60 * DISPLAY_MINUTES, function () {
+			return "";
+		});
+	};
 
 	var emptyDatas = function () {
 		return range(60 * DISPLAY_MINUTES, function () {
@@ -168,7 +170,7 @@ function displayDashboard() {
 		var latencyChart = new Chart(ctx, {
 			type: 'line',
 			data: {
-				labels: times,
+				labels: times(),
 				datasets: [{
 					label: '~4 ms',
 					data: emptyDatas(),
@@ -275,7 +277,7 @@ function displayDashboard() {
 		var opsChart = new Chart(document.getElementById("opsCanvas").getContext("2d"), {
 			type: 'line',
 			data: {
-				labels: times,
+				labels: times(),
 				datasets: [{
 					label: "OPS",
 					fill: true,
@@ -317,7 +319,7 @@ function displayDashboard() {
 		var connectionChart = new Chart(document.getElementById("connectionCanvas").getContext("2d"), {
 			type: 'line',
 			data: {
-				labels: times,
+				labels: times(),
 				datasets: [{
 					label: "Connection",
 					fill: true,
@@ -359,7 +361,7 @@ function displayDashboard() {
 		var memChart = new Chart(document.getElementById("memCanvas").getContext("2d"), {
 			type: 'line',
 			data: {
-				labels: times,
+				labels: times(),
 				datasets: [{
 					label: "Memory",
 					fill: true,
