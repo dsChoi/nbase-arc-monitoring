@@ -19,8 +19,10 @@
         <div class="container-fluid">
             <div class="collapse navbar-collapse">
                 <ul id="tabs" class="nav nav-pills nav-justified">
-                    <li role="presentation"><a href="#dashboard" aria-controls="dashboard" role="tab" data-toggle="tab"
-                                               onclick="displayDashboard(); return true;">Dashboard</a></li>
+                    <li role="presentation"><a href="#realtime" aria-controls="realtime" role="tab" data-toggle="tab"
+                                               onclick="displayRealtime(); return true;">Realtime</a></li>
+                    <li role="presentation"><a href="#history" aria-controls="history" role="tab" data-toggle="tab"
+                                               onclick="return true;">History</a></li>
                 </ul>
             </div>
         </div>
@@ -40,7 +42,7 @@
             </div>
             <!--<div class="checkbox">-->
             <!--<label>-->
-            <!--<input type="checkbox"> Check me out-->
+            <!--<input type="checkbox"> Remember me-->
             <!--</label>-->
             <!--</div>-->
             <button class="btn btn-primary btn-lg">Login</button>
@@ -49,8 +51,8 @@
     <!-- End : Login -->
     <div class="tab-content">
         <h3><span id="clusterName"></span> <small><span id="zkAddressName"></span></small></h3>
-        <!-- Start : Dashboard -->
-        <div role="tabpanel" class="tab-pane" id="dashboard">
+        <!-- Start : Realtime -->
+        <div role="tabpanel" class="tab-pane" id="realtime">
             <div class="row">
                 <div class="col-md-6">
                     <canvas id="latencyCanvas" width="400" height="250"></canvas>
@@ -66,7 +68,15 @@
                 </div>
             </div>
         </div>
-        <!-- End : Dashboard -->
+        <!-- End : Realtime -->
+        <!-- Start : History -->
+        <div role="tabpanel" class="tab-pane" id="history">
+            <div class="jumbotron">
+                <h1>Under Construction</h1>
+                <p>Coming soon</p>
+            </div>
+        </div>
+        <!-- End : History -->
     </div>
 </div>
 <script src="js/jquery-3.2.1.min.js"></script>
@@ -103,14 +113,14 @@ function displayMenu() {
     $("#login").hide();
     var $menu = $("#menu");
     $menu.show();
-    $menu.find('a[href="#dashboard"]').tab('show').click();
+    $menu.find('a[href="#realtime"]').tab('show').click();
 
 	document.getElementById("clusterName").textContent = session.cluster;
 	document.getElementById("zkAddressName").textContent = session.zkAddress;
 }
 
-function displayDashboard() {
-	startDashboard();
+function displayRealtime() {
+	startRealtime();
 }
 </script>
 <script type="text/javascript">
@@ -455,12 +465,17 @@ function displayDashboard() {
 		});
 	}
 
-	var startDashboard = function () {
+	var startedRealtime = false;
+	var startRealtime = function () {
+	    if (startedRealtime) {
+	        return;
+        }
 		// global options
 		Chart.defaults.global.elements.point.radius = 0;
 
 		showLatencyChart();
 		showStatCharts();
+		startedRealtime = true;
 	};
 </script>
 </body>
