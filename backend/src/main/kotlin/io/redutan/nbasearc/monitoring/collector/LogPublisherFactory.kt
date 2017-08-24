@@ -2,6 +2,7 @@
 
 package io.redutan.nbasearc.monitoring.collector
 
+import io.redutan.nbasearc.monitoring.logger
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -13,10 +14,15 @@ interface LogPublisherFactory {
 }
 
 object ArcCliLogPublisherFactory : LogPublisherFactory{
+    val log by logger()
+
     private val logPublishers = ConcurrentHashMap<LogTypeId<out NbaseArcLog>, LogPublishable<out NbaseArcLog>>()
 
     override fun <T : NbaseArcLog> getLogPublisher(logTypeId: LogTypeId<T>): LogPublishable<T> {
-        return logPublishers.computeIfAbsent(logTypeId,
+        val result = logPublishers.computeIfAbsent(logTypeId,
                 { ArcCliLogPublisher(it.clusterId, it.logType as LogType<T>) }) as LogPublishable<T>
+        if (log.isInfoEnabled)
+            log.info("logPublishers count = {}", logPublishers.count())
+        return result
     }
 }

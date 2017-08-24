@@ -19,9 +19,9 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
     companion object {
         val log by logger()
     }
-    var process: Process? = null
-    var isCallProcess = false
-    val observable: Observable<T> = Observable.create<T> { e ->
+    private var process: Process? = null
+    private var isCallProcess = false
+    private val observable: Observable<T> = Observable.create<T> { e ->
         var header = UNKNOWN_HEADER  // header 초기화
         var currentDateTime = header.current
         try {
@@ -34,11 +34,11 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
                     currentDateTime = header.current
                 }
                 val parsedLog = logType.parser.parse(currentDateTime, line)
-                // TODO 미접속 오류 : "Connect to cluster: Request timeout"
                 // 알 수 없는 로그인가?
                 if (parsedLog.isUnknown()) {
                     return@forEachLine
                 }
+                // 오류가 나면 로깅만 한다. 단, "Connect to cluster: Request timeout" 이것은 접속 불가
                 if (parsedLog.isError()) {
                     log.error("Parsing error : {} : {}", parsedLog.errorDescription, clusterId)
                     return@forEachLine

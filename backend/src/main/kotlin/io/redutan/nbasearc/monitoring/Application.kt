@@ -37,7 +37,7 @@ fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
     install(WebSockets) {
-        pingPeriod = Duration.ofMinutes(1)
+        pingPeriod = Duration.ofSeconds(1)
     }
 
     install(Routing) {
@@ -63,7 +63,6 @@ fun Application.main() {
             val clusterId = ClusterId(zkAddress = zkAddress, cluster = cluster)
             log.debug("clusterId = {}", clusterId)
             server.openSocket(session, clusterId, this)
-
             try {
                 incoming.consumeEach { frame ->
                     if (frame is Frame.Text) {

@@ -3,6 +3,7 @@ package io.redutan.nbasearc.monitoring
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import io.redutan.nbasearc.monitoring.collector.ClusterId
 import io.redutan.nbasearc.monitoring.collector.LogPublisherFactory
 import io.redutan.nbasearc.monitoring.collector.LogType
@@ -21,46 +22,60 @@ class LogServer(private val logPublisherFactory: LogPublisherFactory,
     companion object {
         val log by logger()
     }
-    private val webSocketMap = ConcurrentHashMap<String, MutableList<WebSocketSession>>()
+
+    private val webSocketsMap = ConcurrentHashMap<String, MutableList<WebSocketSession>>()
     private val clusterIds = ConcurrentHashMap<WebSocketSession, ClusterId>()
-    private val subscriberMap = ConcurrentHashMap<WebSocketSession, MutableList<Disposable>>()
+    private val subscribersMap = ConcurrentHashMap<WebSocketSession, MutableList<Disposable>>()
     private val gson: Gson = GsonBuilder().create()
 
     fun openSocket(session: LogSession, clusterId: ClusterId, socket: WebSocketSession) {
-        val sockets = webSocketMap.computeIfAbsent(session.id) { CopyOnWriteArrayList<WebSocketSession>() }
+        val sockets = webSocketsMap.computeIfAbsent(session.id) { CopyOnWriteArrayList<WebSocketSession>() }
         sockets.add(socket)
         clusterIds.putIfAbsent(socket, clusterId)
-        log.info("Open Socket {} : {}", session.id, socket)
+        if (log.isInfoEnabled) {
+            log.info("Open Socket {} : {}", session.id, socket)
+            logTotal()
+        }
     }
 
-    fun publish(session: LogSession, socket: WebSocketSession, logType: LogType<*>) {
+    suspend fun publish(session: LogSession, socket: WebSocketSession, logType: LogType<*>) {
         val clusterId = clusterIds[socket]!!
         val logPublisher = logPublisherFactory.getLogPublisher(LogTypeId(logType, clusterId))
         logPersistence.initialize(logPublisher)
         val subscriber = logPublisher.observe()
+                .subscribeOn(Schedulers.newThread())
                 .subscribe({
                     socket.outgoing.offer(Frame.Text(gson.toJson(it)))
                 })
-        val subscribers = subscriberMap.computeIfAbsent(socket, { CopyOnWriteArrayList<Disposable>() })
+        val subscribers = subscribersMap.computeIfAbsent(socket, { CopyOnWriteArrayList<Disposable>() })
         subscribers.add(subscriber)
-        log.info("Published {} : {} : {}", session.id, socket, logType)
+        if (log.isInfoEnabled) {
+            log.info("Published {} : {} : {}", session.id, socket, logType)
+            logTotal()
+        }
     }
 
     fun closeSocket(session: LogSession, socket: WebSocketSession) {
-        val subscribers = subscriberMap[socket]
+        log.info("Will close Socket {} : {}", session.id, socket)
+        val subscribers = subscribersMap[socket]
         subscribers?.forEach { if (!it.isDisposed) it.dispose() }
-        subscriberMap.remove(socket)
-
-        val sockets = webSocketMap[session.id]
-        sockets?.remove(socket)
-        if (sockets?.isEmpty() != false) {
-            webSocketMap.remove(session.id)
-            clusterIds.remove(socket)
+        subscribersMap.remove(socket)
+        clusterIds.remove(socket)
+        webSocketsMap[session.id]?.let {
+            it.remove(socket)
+            if (it.isEmpty()) {
+                webSocketsMap.remove(session.id)
+            }
         }
         if (log.isInfoEnabled) {
             log.info("Closed Socket {} : {}", session.id, socket)
-            log.info("Total | Session count : {}, Socket  count : {}", webSocketMap.count(), clusterIds.count())
+            logTotal()
         }
+    }
+
+    private fun logTotal() {
+        log.info("Total | Session count : {}, Socket count : {}, Subscriber count : {}",
+                webSocketsMap.count(), clusterIds.count(), subscribersMap.count())
     }
 }
 

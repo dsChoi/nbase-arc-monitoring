@@ -1,8 +1,7 @@
 package io.redutan.nbasearc.monitoring
 
+import io.reactivex.schedulers.Schedulers
 import io.redutan.nbasearc.monitoring.collector.LogPublishable
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.TimeUnit
 
@@ -15,7 +14,7 @@ interface LogPersistence {
 }
 
 object DefaultLogPersistence : LogPersistence {
-    val logPublishers = CopyOnWriteArraySet<LogPublishable<*>>()
+    private val logPublishers = CopyOnWriteArraySet<LogPublishable<*>>()
 
     override fun initialize(logPublisher: LogPublishable<*>) {
         val log by logger()
@@ -23,12 +22,11 @@ object DefaultLogPersistence : LogPersistence {
             return
         }
         logPublishers.add(logPublisher)
-        launch(CommonPool) {
-            logPublisher.observe()
-                    .doOnNext { log.debug("Db Insert {}", it) }
-                    .subscribe()
-        }
-        log.info("H2 Db registered initialization")
+        log.info("Db registered initialized")
+        logPublisher.observe()
+                .doOnNext { log.debug("Db Inserted {}", it) }
+                .subscribeOn(Schedulers.newThread())
+                .subscribe()
         TimeUnit.MILLISECONDS.sleep(500)
     }
 }
