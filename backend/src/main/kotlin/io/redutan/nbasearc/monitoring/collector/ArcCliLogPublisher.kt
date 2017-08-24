@@ -40,7 +40,7 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
                     return@forEachLine
                 }
                 if (parsedLog.isError()) {
-                    log.error("{} : {}", clusterId, parsedLog.errorDescription)
+                    log.error("Parsing error : {} : {}", parsedLog.errorDescription, clusterId)
                     return@forEachLine
                 }
                 e.onNext(parsedLog)   // 방출
