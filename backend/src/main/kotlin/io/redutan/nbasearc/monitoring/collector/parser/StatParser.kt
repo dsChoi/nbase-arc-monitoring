@@ -24,11 +24,8 @@ private const val STAT_STRING_SPLIT_SIZE = 12
  */
 class StatParser : Parser<Stat> {
     override fun parse(current: LocalDateTime, line: String): Stat {
-        if (line.contains("Exception")) {
-            return Stat(current, line.trim())
-        }
         if (line.length != STAT_STRING_LENGTH) {
-            return UNKNOWN_STAT
+            return Stat(current, line.trim())
         }
         val items = line.split(delimiters = "|")
         if (items.size != STAT_STRING_SPLIT_SIZE) {

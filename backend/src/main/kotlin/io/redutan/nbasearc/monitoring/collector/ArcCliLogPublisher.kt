@@ -33,13 +33,17 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
                     header = headerParser.parse(line)
                     currentDateTime = header.current
                 }
-                val log = logType.parser.parse(currentDateTime, line)
+                val parsedLog = logType.parser.parse(currentDateTime, line)
                 // TODO 미접속 오류 : "Connect to cluster: Request timeout"
                 // 알 수 없는 로그인가?
-                if (log.isUnknown()) {
+                if (parsedLog.isUnknown()) {
                     return@forEachLine
                 }
-                e.onNext(log)   // 방출
+                if (parsedLog.isError()) {
+                    log.error("{} : {}", clusterId, parsedLog.errorDescription)
+                    return@forEachLine
+                }
+                e.onNext(parsedLog)   // 방출
                 currentDateTime = currentDateTime.plusSeconds(1)
             }
         } catch (t: Throwable) {

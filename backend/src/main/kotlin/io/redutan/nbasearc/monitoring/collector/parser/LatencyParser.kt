@@ -28,11 +28,8 @@ private const val LATENCY_STRING_SPLIT_SIZE = 15
 class LatencyParser : Parser<Latency> {
 
     override fun parse(current: LocalDateTime, line: String): Latency {
-        if (line.contains("Exception")) {
-            return Latency(current, line.trim())
-        }
         if (line.length != LATENCY_STRING_LENGTH) {
-            return UNKNOWN_LATENCY
+            return Latency(current, line.trim())
         }
         val items = line.split(delimiters = "|")
         if (items.size != LATENCY_STRING_SPLIT_SIZE) {
