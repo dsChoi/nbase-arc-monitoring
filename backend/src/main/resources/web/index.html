@@ -47,7 +47,8 @@
         </form>
     </div>
     <!-- End : Login -->
-    <div class="tab-content" style="margin-top: 50px;">
+    <div class="tab-content">
+        <h3><span id="clusterName"></span> <small><span id="zkAddressName"></span></small></h3>
         <!-- Start : Dashboard -->
         <div role="tabpanel" class="tab-pane" id="dashboard">
             <div class="row">
@@ -73,8 +74,8 @@
 <script type='text/javascript' src='js/Chart-2.6.0.min.js'></script>
 <script type="text/javascript">
 var session = {
-    zkAddress: null,
-    cluster: null
+    zkAddress: "",
+    cluster: ""
 };
 
 function login() {
@@ -102,7 +103,10 @@ function displayMenu() {
     $("#login").hide();
     var $menu = $("#menu");
     $menu.show();
-    $menu.find('a[href="#dashboard"]').tab('show').click()
+    $menu.find('a[href="#dashboard"]').tab('show').click();
+
+	document.getElementById("clusterName").textContent = session.cluster;
+	document.getElementById("zkAddressName").textContent = session.zkAddress;
 }
 
 function displayDashboard() {
