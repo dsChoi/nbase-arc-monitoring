@@ -16,25 +16,25 @@ import java.util.concurrent.CopyOnWriteArrayList
  *
  * @author myeongju.jung
  */
-class LogServer(val logPublisherFactory: LogPublisherFactory, val logPersistence: LogPersistence) {
+class LogServer(private val logPublisherFactory: LogPublisherFactory,
+                private val logPersistence: LogPersistence) {
     companion object {
         val log by logger()
     }
-    val webSocketMap = ConcurrentHashMap<String, MutableList<WebSocketSession>>()
-    val clusterIds = ConcurrentHashMap<String, ClusterId>()
-    val subscriberMap = ConcurrentHashMap<WebSocketSession, MutableList<Disposable>>()
-    val gson: Gson = GsonBuilder().create()
+    private val webSocketMap = ConcurrentHashMap<String, MutableList<WebSocketSession>>()
+    private val clusterIds = ConcurrentHashMap<WebSocketSession, ClusterId>()
+    private val subscriberMap = ConcurrentHashMap<WebSocketSession, MutableList<Disposable>>()
+    private val gson: Gson = GsonBuilder().create()
 
     fun openSocket(session: LogSession, clusterId: ClusterId, socket: WebSocketSession) {
         val sockets = webSocketMap.computeIfAbsent(session.id) { CopyOnWriteArrayList<WebSocketSession>() }
         sockets.add(socket)
-        clusterIds.putIfAbsent(session.id, clusterId)
-        log.info("Opened Socket {}:{}", session.id, socket)
+        clusterIds.putIfAbsent(socket, clusterId)
+        log.info("Open Socket {} : {}", session.id, socket)
     }
 
     fun publish(session: LogSession, socket: WebSocketSession, logType: LogType<*>) {
-        log.info("Will publish {}:{}:{}", session.id, socket, logType)
-        val clusterId = clusterIds[session.id]!!
+        val clusterId = clusterIds[socket]!!
         val logPublisher = logPublisherFactory.getLogPublisher(LogTypeId(logType, clusterId))
         logPersistence.initialize(logPublisher)
         val subscriber = logPublisher.observe()
@@ -43,7 +43,7 @@ class LogServer(val logPublisherFactory: LogPublisherFactory, val logPersistence
                 })
         val subscribers = subscriberMap.computeIfAbsent(socket, { CopyOnWriteArrayList<Disposable>() })
         subscribers.add(subscriber)
-        log.info("Published {}:{}:{}", session.id, socket, logType)
+        log.info("Published {} : {} : {}", session.id, socket, logType)
     }
 
     fun closeSocket(session: LogSession, socket: WebSocketSession) {
@@ -53,11 +53,14 @@ class LogServer(val logPublisherFactory: LogPublisherFactory, val logPersistence
 
         val sockets = webSocketMap[session.id]
         sockets?.remove(socket)
-        if (sockets?.isEmpty() ?: true) {
+        if (sockets?.isEmpty() != false) {
             webSocketMap.remove(session.id)
-            clusterIds.remove(session.id)
+            clusterIds.remove(socket)
         }
-        log.info("Closed Socket {}:{}", session.id, socket)
+        if (log.isInfoEnabled) {
+            log.info("Closed Socket {} : {}", session.id, socket)
+            log.info("Total | Session count : {}, Socket  count : {}", webSocketMap.count(), clusterIds.count())
+        }
     }
 }
 
