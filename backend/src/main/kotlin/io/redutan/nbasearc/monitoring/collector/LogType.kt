@@ -2,6 +2,9 @@ package io.redutan.nbasearc.monitoring.collector
 
 import io.redutan.nbasearc.monitoring.collector.parser.LatencyParser
 import io.redutan.nbasearc.monitoring.collector.parser.StatParser
+import io.redutan.nbasearc.monitoring.persistence.LatencyRepository
+import io.redutan.nbasearc.monitoring.persistence.LogRepository
+import io.redutan.nbasearc.monitoring.persistence.StatRepository
 import kotlin.reflect.KClass
 
 /**
@@ -12,6 +15,7 @@ interface LogType<T : NbaseArcLog> {
     val parser: Parser<T>
     val command: String
     val logClass: KClass<T>
+    val repository: LogRepository<T>
 }
 
 object LatencyType: LogType<Latency> {
@@ -21,6 +25,8 @@ object LatencyType: LogType<Latency> {
         get() = "-l"
     override val logClass: KClass<Latency>
         get() = Latency::class
+    override val repository: LogRepository<Latency>
+        get() = LatencyRepository()
 }
 
 object StatType: LogType<Stat> {
@@ -30,5 +36,7 @@ object StatType: LogType<Stat> {
         get() = "-s"
     override val logClass: KClass<Stat>
         get() = Stat::class
+    override val repository: LogRepository<Stat>
+        get() = StatRepository()
 
 }
