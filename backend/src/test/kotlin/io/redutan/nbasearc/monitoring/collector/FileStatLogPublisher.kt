@@ -18,18 +18,21 @@ class FileStatLogPublisher(private val parser: Parser<Stat>,
     override fun observe(): Observable<Stat> {
         val lineStream = getFileLineStream()
         return Observable.create<Stat> { e ->
-            var header = UNKNOWN_HEADER  // header 초기화
-            var currentDateTime = header.current
+            var header = NbaseArcLogHeader.unknown()  // header 초기화
+            var currentDateTime = header.loggedAt
             lineStream.forEach {
                 try {
                     // header 인가?
                     if (headerParser.isHeader(it)) {
-                        header = headerParser.parse(it)
-                        currentDateTime = header.current
+                        header = headerParser.parse(ClusterId.empty(), it)
+                        currentDateTime = header.loggedAt
                     }
-                    val log = parser.parse(currentDateTime, it)
+                    val log = parser.parse(ClusterId.empty(), currentDateTime, it)
                     // 알 수 없는 로그인가?
                     if (log.isUnknown()) {
+                        return@forEach
+                    }
+                    if (log.isError()) {
                         return@forEach
                     }
                     e.onNext(log)   // 방출

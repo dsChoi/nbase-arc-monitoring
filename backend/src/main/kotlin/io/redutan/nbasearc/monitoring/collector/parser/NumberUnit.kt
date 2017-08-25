@@ -27,3 +27,11 @@ enum class NumberUnit(val symbol: String, val unit: Long) {
         return significand.multiply(unit).toLong() // 69.40 * 1_000
     }
 }
+
+fun String.toLogNumber(): Long {
+    val newValue = this.trim()
+    return NumberUnit.values()
+        .firstOrNull { it.match(newValue) }
+        ?.toLong(newValue)
+        ?: 0
+}

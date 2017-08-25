@@ -2,9 +2,8 @@ package io.redutan.nbasearc.monitoring.collector
 
 import java.time.LocalDateTime
 
-val UNKNOWN_LATENCY = Latency(LocalDateTime.MIN)
-
-data class Latency(override val loggedAt: LocalDateTime,
+data class Latency(override val clusterId: ClusterId,
+                   override val loggedAt: LocalDateTime,
                    val under1ms: Long,
                    val under2ms: Long,
                    val under4ms: Long,
@@ -17,13 +16,21 @@ data class Latency(override val loggedAt: LocalDateTime,
                    val under512ms: Long,
                    val under1024ms: Long,
                    val over1024ms: Long,
-                   override val errorDescription: String = "")
+                   override val errorDescription: String? = null)
     : NbaseArcLog {
 
-    constructor(loggedAt: LocalDateTime, errorDescription: String = "") :
-            this(loggedAt, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, errorDescription)
+    companion object {
+        private val UNKNOWN = Latency(ClusterId.empty(), LocalDateTime.MIN, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+        fun unknown(): Latency {
+            return UNKNOWN
+        }
+
+        fun error(clusterId: ClusterId, loggedAt: LocalDateTime, errorDescription: String): Latency {
+            return Latency(clusterId, loggedAt, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, errorDescription = errorDescription)
+        }
+    }
 
     override fun isUnknown(): Boolean {
-        return this == UNKNOWN_LATENCY
+        return this == UNKNOWN
     }
 }

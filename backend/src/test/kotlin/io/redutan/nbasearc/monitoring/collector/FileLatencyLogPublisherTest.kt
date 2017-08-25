@@ -3,7 +3,7 @@ package io.redutan.nbasearc.monitoring.collector
 import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.LatencyParser
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
-import org.junit.Ignore
+import io.redutan.nbasearc.monitoring.logger
 import org.junit.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -12,32 +12,35 @@ import kotlin.test.assertTrue
 /**
  * @author myeongju.jung
  */
-@Ignore
+//@Ignore
 class FileLatencyLogPublisherTest {
     val parser = LatencyParser()
     val headerParser = LogHeaderParser()
     var logPublisher = FileLatencyLogPublisher(parser, headerParser)
+
+    companion object {
+        val log by logger()
+    }
 
     @Test
     fun testObserve_Each() {
         // given
         val to = TestObserver.create<Latency>()
         // when
-        val latencies = logPublisher.observe()
-                .doOnNext { println(it) }
-        latencies.subscribe(to)
+        logPublisher.observe().subscribe(to)
         // then
         to.assertComplete()
-        to.assertValueCount(23 * 15 - 1)
+        to.assertValueCount(15 * 23 - 1)
         to.assertNever({ !isValidLatency(it) })
     }
 
     private fun isValidLatency(it: Latency): Boolean {
-        try {
+        return try {
             assertLatency(it)
-            return true
+            true
         } catch (t: AssertionError) {
-            return false
+            log.error("invalid " + it, t)
+            false
         }
     }
 

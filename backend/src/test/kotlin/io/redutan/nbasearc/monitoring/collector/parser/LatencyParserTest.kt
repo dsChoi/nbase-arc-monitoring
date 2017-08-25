@@ -1,5 +1,6 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
+import io.redutan.nbasearc.monitoring.collector.ClusterId
 import io.redutan.nbasearc.monitoring.collector.Latency
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
@@ -20,7 +21,7 @@ class LatencyParserTest {
         val now = LocalDateTime.now()
         val line = "| 00:52 |  1.08 K |      13 |       7 |       2 |       1 |       2 |       3 |       4 |       5 |       6 |       7 |       8 |"
         // when
-        val latency = latencyParser.parse(now, line)
+        val latency = latencyParser.parse(ClusterId.empty(), now, line)
         // then
         assertLatency(latency, now, 1_080, 13, 7, 2, 1, 2, 3, 4, 5, 6, 7, 8)
     }
@@ -28,7 +29,7 @@ class LatencyParserTest {
     private fun assertLatency(latency: Latency, datetime: LocalDateTime, under1ms: Long, under2ms: Long, under4ms: Long, under8ms: Long, under16ms: Long,
                               under32ms: Long, under64ms: Long, under128ms: Long, under256ms: Long, under512ms: Long, under1024ms: Long, over1024ms: Long) {
         assertEquals(
-                Latency(datetime, under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms, under128ms, under256ms, under512ms, under1024ms, over1024ms),
+                Latency(ClusterId.empty(), datetime, under1ms, under2ms, under4ms, under8ms, under16ms, under32ms, under64ms, under128ms, under256ms, under512ms, under1024ms, over1024ms),
                 latency)
     }
 
@@ -38,7 +39,7 @@ class LatencyParserTest {
         val now = LocalDateTime.now()
         val line = "| 11:53 |  1.09 K |      13 |       7 |       2 |      11 |      22 |      33 |      44 |      55 |      66 |      77 |      88 |"
         // when
-        val latency = latencyParser.parse(now, line)
+        val latency = latencyParser.parse(ClusterId.empty(), now, line)
         // then
         assertLatency(latency, now, 1_090, 13, 7, 2, 11, 22, 33, 44, 55, 66, 77, 88)
     }
@@ -49,7 +50,7 @@ class LatencyParserTest {
         val now = LocalDateTime.now()
         val line = "              ConnectionTimeoutException                              "
         // when
-        val latency = latencyParser.parse(now, line)
+        val latency = latencyParser.parse(ClusterId.empty(), now, line)
         // then
         assertTrue(latency.isError())
         assertEquals("ConnectionTimeoutException", latency.errorDescription)
@@ -66,7 +67,7 @@ class LatencyParserTest {
         )
         print("lines.size = ${lines.size}")
         lines
-                .map { latencyParser.parse(now, it) }
+                .map { latencyParser.parse(ClusterId.empty(), now, it) }
                 .forEach { assertThat(it.isUnknown(), equalTo(true)) }
     }
 }

@@ -4,6 +4,7 @@ import io.reactivex.observers.TestObserver
 import io.redutan.nbasearc.monitoring.collector.parser.EMPTY_BYTE_VALUE
 import io.redutan.nbasearc.monitoring.collector.parser.LogHeaderParser
 import io.redutan.nbasearc.monitoring.collector.parser.StatParser
+import io.redutan.nbasearc.monitoring.logger
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -16,6 +17,9 @@ import kotlin.test.assertTrue
  * @author myeongju.jung
  */
 class FileStatLogPublisherTest {
+    companion object {
+        val log by logger()
+    }
     val parser = StatParser()
     val headerParser = LogHeaderParser()
     var logPublisher = FileStatLogPublisher(parser, headerParser)
@@ -25,20 +29,21 @@ class FileStatLogPublisherTest {
         // given
         val to = TestObserver.create<Stat>()
         // when
-        val latencies = logPublisher.observe()
-        latencies.subscribe(to)
+        logPublisher.observe()
+            .subscribe(to)
         // then
         to.assertComplete()
-        to.assertValueCount(318)
+        to.assertValueCount(317)
         to.assertNever({ !isValidStat(it) })
     }
 
     private fun isValidStat(it: Stat): Boolean {
-        try {
+        return try {
             assertStat(it)
-            return true
+            true
         } catch (t: AssertionError) {
-            return false
+            log.error("invalid : " + it, t)
+            false
         }
     }
 

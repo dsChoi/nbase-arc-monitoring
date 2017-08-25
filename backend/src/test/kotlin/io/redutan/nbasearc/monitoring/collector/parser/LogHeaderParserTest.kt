@@ -1,5 +1,6 @@
 package io.redutan.nbasearc.monitoring.collector.parser
 
+import io.redutan.nbasearc.monitoring.collector.ClusterId
 import io.redutan.nbasearc.monitoring.collector.NbaseArcLogHeader
 import org.junit.Test
 import java.time.LocalDateTime
@@ -42,10 +43,11 @@ class LogHeaderParserTest {
         // given
         val line = "|  2017-03-24 01:59:42, CLUSTER:ticketlink_cluster_1                                                                            |"
         // when
-        val header = headerParser.parse(line)
+        val header = headerParser.parse(ClusterId.empty(), line)
         // then
         assertEquals(
-                NbaseArcLogHeader(LocalDateTime.of(2017, Month.MARCH, 24, 1, 59, 42), "ticketlink_cluster_1"),
+                NbaseArcLogHeader(ClusterId.empty(),
+                    LocalDateTime.of(2017, Month.MARCH, 24, 1, 59, 42)),
                 header)
     }
 
@@ -55,7 +57,7 @@ class LogHeaderParserTest {
         // given
         val line = "                 ConnectionTimeoutException                       "
         // when
-        val header = headerParser.parse(line)
+        val header = headerParser.parse(ClusterId.empty(), line)
         // then
         assertTrue(header.isError())
         assertEquals("ConnectionTimeoutException", header.errorDescription)
@@ -71,7 +73,7 @@ class LogHeaderParserTest {
         )
         print("lines.size = ${lines.size}")
         lines
-                .map { headerParser.parse(it) }
+                .map { headerParser.parse(ClusterId.empty(), it) }
                 .forEach { assertTrue(it.isUnknown()) }
     }
 }

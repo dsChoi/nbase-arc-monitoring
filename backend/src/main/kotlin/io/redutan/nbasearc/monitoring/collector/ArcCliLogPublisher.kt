@@ -22,18 +22,18 @@ class ArcCliLogPublisher<T : NbaseArcLog>(
     private var process: Process? = null
     private var isCallProcess = false
     private val observable: Observable<T> = Observable.create<T> { e ->
-        var header = UNKNOWN_HEADER  // header 초기화
-        var currentDateTime = header.current
+        var header = NbaseArcLogHeader.unknown()  // header 초기화
+        var currentDateTime = header.loggedAt
         try {
             process = executeArcCli()
             process!!.inputStream.bufferedReader().forEachLine { line ->
                 // header 인가?
                 log.debug("{}", line)
                 if (headerParser.isHeader(line)) {
-                    header = headerParser.parse(line)
-                    currentDateTime = header.current
+                    header = headerParser.parse(clusterId, line)
+                    currentDateTime = header.loggedAt
                 }
-                val parsedLog = logType.parser.parse(currentDateTime, line)
+                val parsedLog = logType.parser.parse(clusterId, currentDateTime, line)
                 // 알 수 없는 로그인가?
                 if (parsedLog.isUnknown()) {
                     return@forEachLine
