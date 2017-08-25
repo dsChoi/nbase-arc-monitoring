@@ -23,10 +23,9 @@ object ArcCliLogPublisherFactory : LogPublisherFactory{
         return logPublishers.computeIfAbsent(logTypeId, { (logType, clusterId) ->
             val result = ArcCliLogPublisher(clusterId, logType as LogType<T>)
             result.observe()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .subscribe {
                     logType.repository.save(it)
-                    log.info("Inserted : {}", it)
                 }
             return@computeIfAbsent result
         }) as LogPublishable<T>

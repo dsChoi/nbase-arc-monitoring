@@ -41,9 +41,8 @@ class LogServer(private val logPublisherFactory: LogPublisherFactory,
     suspend fun publish(session: LogSession, socket: WebSocketSession, logType: LogType<*>) {
         val clusterId = clusterIds[socket]!!
         val logPublisher = logPublisherFactory.getLogPublisher(LogTypeId(logType, clusterId))
-//        logPersistence.initialize(logPublisher)
         val subscriber = logPublisher.observe()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .subscribe({
                     socket.outgoing.offer(Frame.Text(gson.toJson(it)))
                 })

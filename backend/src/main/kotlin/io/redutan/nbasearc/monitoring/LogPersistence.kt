@@ -3,11 +3,11 @@ package io.redutan.nbasearc.monitoring
 import io.reactivex.schedulers.Schedulers
 import io.redutan.nbasearc.monitoring.collector.LogPublishable
 import java.util.concurrent.CopyOnWriteArraySet
-import java.util.concurrent.TimeUnit
 
 /**
  *
  * @author myeongju.jung
+ * @deprecated
  */
 interface LogPersistence {
     fun initialize(logPublisher: LogPublishable<*>)
@@ -27,6 +27,5 @@ object DefaultLogPersistence : LogPersistence {
                 .doOnNext { log.debug("Db Inserted {}", it) }
                 .subscribeOn(Schedulers.newThread())
                 .subscribe()
-        TimeUnit.MILLISECONDS.sleep(500)
     }
 }
