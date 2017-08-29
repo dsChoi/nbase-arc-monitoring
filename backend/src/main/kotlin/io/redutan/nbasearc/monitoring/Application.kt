@@ -7,18 +7,14 @@ import io.redutan.nbasearc.monitoring.collector.StatType
 import kotlinx.coroutines.experimental.channels.consumeEach
 import org.jetbrains.ktor.application.Application
 import org.jetbrains.ktor.application.ApplicationCallPipeline
-import org.jetbrains.ktor.application.call
 import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.content.defaultResource
 import org.jetbrains.ktor.content.resources
 import org.jetbrains.ktor.content.static
+import org.jetbrains.ktor.features.CallLogging
 import org.jetbrains.ktor.features.DefaultHeaders
-import org.jetbrains.ktor.logging.CallLogging
 import org.jetbrains.ktor.routing.Routing
-import org.jetbrains.ktor.sessions.session
-import org.jetbrains.ktor.sessions.sessionOrNull
-import org.jetbrains.ktor.sessions.withCookieByValue
-import org.jetbrains.ktor.sessions.withSessions
+import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.util.nextNonce
 import org.jetbrains.ktor.websocket.*
 import org.slf4j.Logger
@@ -34,29 +30,31 @@ private val server = LogServer(ArcCliLogPublisherFactory, logPersistence)
  */
 fun Application.main() {
     val log by logger()
+
     install(DefaultHeaders)
     install(CallLogging)
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(1)
+        pingPeriod = Duration.ofMinutes(1)
     }
 
     install(Routing) {
-        withSessions<LogSession> {
-            withCookieByValue()
+        install(Sessions) {
+            cookie<LogSession>("SESSION")
         }
 
         intercept(ApplicationCallPipeline.Infrastructure) {
-            if (call.sessionOrNull<LogSession>() == null) {
-                call.session(LogSession(nextNonce()))
+            if (call.sessions.get<LogSession>() == null) {
+                call.sessions.set(LogSession(nextNonce()))
             }
         }
 
         webSocket("/logs") {
-            val session = call.sessionOrNull<LogSession>()
+            val session = call.sessions.get<LogSession>()
             if (session == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket
             }
+
             log.debug("parameters = {}", call.parameters)
             val zkAddress = call.parameters["zkAddress"]!!
             val cluster = call.parameters["cluster"]!!
